@@ -1,33 +1,95 @@
-{% extends "main/base.html" %} 
+{% extends "main/base.html" %}
 {% load static %} 
-{% block title %}P O L O S{%endblock title %}
+{% block title %}Рабочий стол | POLOS{% endblock %}
 {% block content %}
-    <section class="home d-flex flex-column">
-        <div class="home-title">
-            <a href="#" class="home-btn mt-4">ВСЕ ПРОДУКТЫ</a>
-        </div>
-        <div class="home-recomendation">
-            <div class="rec-title">
-                <h3><span>Популярное</span></h3>
-            </div>
-        </div>
+<div class="desktop">
 
-        <div class="home-cards">
-            {% for product in  products%}
-                <a href="{{ product_get_absolute_url }}" class= "home-card">
-                    <img src="{{ product.image.url }}" class="card-img" alt="">
-                    <h5 class="title-card"> {{product.name }}</h5>
-                    {% if  product.discount%}
-                        <div class="cart-discount">
-                            <p class="line">{{product.price}}</p>
-                            <p>{{product.sell_price}}</p>
-                        </div>
-                    {% else %}
-                        <p class="price">{{product.price}}</p>
-                    {% endif %}
-                </a>
-            {% endfor %}
-        </div>
-    </section>
-    <img src="{% static 'img/logo2.png' %}" alt="" class="logotip">
-{% endblock content %}
+  <!-- Добавляем слои для обоев -->
+  <div class="wallpaper-layer wallpaper1 visible"></div>
+  <div class="wallpaper-layer wallpaper2"></div>
+
+  <!-- Магазин по центру -->
+  <div id="shopIcon" class="icon big-icon" ondblclick="openWindow('shopWindow')">
+    <img src="{% static 'icons/shop.png' %}" alt="Магазин" />
+    <span>Магазин</span>
+  </div>
+
+  <!-- Другие иконки по углам -->
+  <div class="icon corner-icon top-left" ondblclick="openWindow('terminalWindow')">
+    <img src="{% static 'icons/terminal.png' %}" alt="Терминал" />
+    <span>Терминал</span>
+  </div>
+
+  <div class="icon corner-icon top-right" ondblclick="openWindow('paintWindow')">
+    <img src="{% static 'icons/paint.png' %}" alt="Пейнт" />
+    <span>Пейнт</span>
+  </div>
+
+  <div class="icon corner-icon bottom-left" ondblclick="openWindow('wallpaperWindow')">
+    <img src="{% static 'icons/wallpaper.png' %}" alt="Обои" />
+    <span>Обои</span>
+  </div>
+
+  <div class="icon corner-icon bottom-right" ondblclick="openWindow('sapperWindow')">
+    <img src="{% static 'icons/sapper.png' %}" alt="Сапёр" />
+    <span>Сапёр</span>
+  </div>
+
+  <!-- Окна -->
+  <div id="shopWindow" class="win95-window">
+    <div class="win95-titlebar">
+      <span>Магазин</span>
+      <button onclick="closeWindow('shopWindow')">✕</button>
+    </div>
+    <div class="win95-content">
+      <a href="/shop">Перейти в магазин</a>
+    </div>
+  </div>
+
+  <div id="terminalWindow" class="win95-window">
+    <div class="win95-titlebar">
+      <span>Терминал</span>
+      <button onclick="closeWindow('terminalWindow')">✕</button>
+    </div>
+    <div class="win95-content">
+      <p>Магазин POLOS — ваш портал в мир ретро-стиля и современного функционала. Здесь вы найдёте всё необходимое для создания атмосферы старой доброй операционной системы, с удобным доступом и актуальными товарами.</p>
+    </div>
+  </div>
+
+  <div id="paintWindow" class="win95-window">
+    <div class="win95-titlebar">
+      <span>Пейнт</span>
+      <button onclick="closeWindow('paintWindow')">✕</button>
+    </div>
+    <div class="win95-content">
+      <p>Пейнт пока не доступен.</p>
+    </div>
+  </div>
+  
+  <div class="win95-window" id="wallpaperWindow">
+    <div class="win95-titlebar">
+      <span>Обои</span>
+      <button onclick="closeWindow('wallpaperWindow')">X</button>
+    </div>
+    <div class="win95-content">
+      <p>Здесь можно сменить обои рабочего стола:</p>
+      <button id="changeWallpaperBtn" class="start-button">Сменить обои</button>
+    </div>
+  </div>
+  
+  <div id="sapperWindow" class="win95-window">
+    <div class="win95-titlebar">
+      <span>Сапёр</span>
+      <button onclick="closeWindow('sapperWindow')">✕</button>
+    </div>
+    <div class="win95-content">
+      <p>Сапёр скоро будет доступен.</p>
+    </div>
+  </div>
+
+</div>
+
+<script src="{% static 'js/desktop.js' %}"></script>
+<script src="{% static 'js/d-n-d.js' %}"></script>
+<script src="{% static 'js/change_wallpaper.js' %}"></script>
+{% endblock %}

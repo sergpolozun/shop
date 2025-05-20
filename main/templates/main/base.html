@@ -1,45 +1,36 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{% block title %}{% endblock title %}</title>
-    {% comment %} bootsrtap {% endcomment %}
-    <link
-      rel="stylesheet"
-      href="{% static 'bootstrap\css\bootstrap.min.css' %}"
-    />
-    <link rel="stylesheet" href="{% static 'css/base.css' %}" />
-  </head>
-  <body>
-    <header class="header sticky-top">
-      <div class="header-container d-flex">
-        <navbar class="header-nav pt-4">
-          <ul class="header-list d-flex">
-            <li>
-              <a href="/" class="nav-a m-3">Home</a>
-            </li>
-            <li>
-              <a href="#" class="nav-a m-3">Shop</a>
-            </li>
-          </ul>
-        </navbar>
-        <div class="header-logo">
-          <a href="/"
-            ><h2 class="title">P O L O S</h2></a>
-        </div>
-        <div class="header-profile">
-          <a href="" class="m-3">LOGIN</a>
-        </div>
-      </div>
-    </header>
-    <div class="container">
-        {% block content %}
-        {% endblock content %}
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}Polos - Retro Futurism{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/base.css' %}" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
+</head>
+<body>
+  <main>
+    {% block content %}
+    {% endblock %}
+  </main>
+  <div class="taskbar">
+    <div id="startButton" class="start-button">Пуск</div>
+    <div class="taskbar-right">
+      <div id="clock-taskbar"></div>
     </div>
-    <script>
-      {% static 'bootsrtap\js\bootsrtap.bundle.min.js' %}
-    </script>
-  </body>
+  </div>
+
+
+  <div id="startMenu" class="start-menu">
+    <ul>
+      <li onclick="closeAllWindows()">На рабочий стол</li>
+
+    </ul>
+  </div>
+
+  <script src="{% static 'js/clock.js' %}"></script>  
+  <script src="{% static 'js/startmenu.js' %}"></script>  
+</body>
 </html>
