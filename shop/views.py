@@ -1,22 +1,21 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render
 from .models import Product, Category
 
 
-def product_list(request, category_slug=None):
-    category = None
+def product_list(request):
+    category_id = request.GET.get('category')
     categories = Category.objects.all()
     products = Product.objects.all()
-    if category_slug:
-        category = get_object_or_404(Category, slug=category_slug)
-        products = products.filter(category=category)
-    return render(request, 'shop/product/list.html',
-                  {'category': category, 'categories': categories, 'products': products})
 
+    if category_id:
+        try:
+            category_id = int(category_id)
+            products = products.filter(category_id=category_id)
+        except ValueError:
+            category_id = None
 
-def product_detail(request, slug):
-    product = get_object_or_404(Product, 
-                                slug=slug,
-                                available=True)
-    return render(request,
-                  'main/index/detail.html',
-                  {'product': product})
+    return render(request, 'shop/product/list.html', {
+        'products': products,
+        'categories': categories,
+        'selected_category': category_id,
+    })
