@@ -1,49 +1,40 @@
 {% extends "main/base.html" %}
-{% load static %} 
+{% load static %}
 {% block title %}Магазин | POLOS{% endblock %}
 
 {% block content %}
 <div class="shop-container">
   <h1>Магазин</h1>
 
-  <div class="categories">
-    <a href="{% url 'product_list' %}">Все категории</a>
+  <nav class="categories" aria-label="Категории товаров">
+    <a href="{% url 'product_list' %}" {% if not selected_category %}class="active"{% endif %}>Все категории</a>
     {% for category in categories %}
       <a href="?category={{ category.id }}" {% if selected_category == category.id %}class="active"{% endif %}>
         {{ category.name }}
       </a>
     {% endfor %}
-  </div>
+  </nav>
 
-  <div class="product-grid">
+  <section class="product-list" aria-label="Список товаров">
     {% for product in products %}
-      <div class="product-card">
-
+      <article class="product-card">
         {% if product.image %}
           <img src="{{ product.image.url }}" alt="{{ product.name }}">
         {% else %}
           <img src="{% static 'img/notfound.jpg' %}" alt="Изображение не найдено">
         {% endif %}
-
         <h3>{{ product.name }}</h3>
-        <p>{{ product.descriptions }}</p>
-
-        {% if product.discount > 0 %}
+        {% if product.discount %}
           <p>
-            <span class="old-price" style="text-decoration: line-through; color: gray;">
-              {{ product.price }}₽
-            </span><br>
-            <strong class="discount-price" style="color: red;">
-              {{ product.discount_price }}₽
-            </strong>
+            <span class="old-price">{{ product.price }}₽</span>
+            <span class="discount-price">{{ product.discount_price }}₽</span>
           </p>
         {% else %}
-          <strong>{{ product.price }}₽</strong>
+          <p><strong>{{ product.price }}₽</strong></p>
         {% endif %}
-
-        <button>В корзину</button>
-      </div>
+        <button type="button">В корзину</button>
+      </article>
     {% endfor %}
-  </div>
+  </section>
 </div>
 {% endblock %}
