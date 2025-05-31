@@ -1,20 +1,54 @@
 {% extends "main/base.html" %}
 {% load static %}
+{% load mytags %}
+
 {% block title %}Магазин | POLOS{% endblock %}
 
 {% block content %}
 <div class="shop-container">
-  <h1>Магазин</h1>
+  <div class="win95-header">
+    <span>Магазин стритвир одежды POLOS</span>
+  </div>
 
-  <nav class="categories" aria-label="Категории товаров">
-    <a href="{% url 'product_list' %}" {% if not selected_category %}class="active"{% endif %}>Все категории</a>
-    {% for category in categories %}
-      <a href="?category={{ category.id }}" {% if selected_category == category.id %}class="active"{% endif %}>
-        {{ category.name }}
-      </a>
-    {% endfor %}
-  </nav>
+  <!-- Отображение состояния аутентификации пользователя -->
+  <div class="user-status">
+    {% if user.is_authenticated %}
+      <p>Привет, {{ user.username }}! <a href="{% url 'logout' %}">Выйти</a></p>
+    {% else %}
+      <p><a href="{% url 'login' %}">Войти</a> / <a href="{% url 'register' %}">Регистрация</a></p>
+    {% endif %}
+  </div>
 
+  <!-- Кнопка для открытия окна категорий -->
+  <div class="category-window-wrapper">
+    <button class="open-category-window">Категории</button>
+
+    <!-- Окно Windows 98 -->
+    <div class="win95-window category-window" id="categoryWindow">
+      <div class="win95-titlebar">
+        <span>Категории</span>
+        <button onclick="closeCategoryWindow()">X</button>
+      </div>
+      <div class="win95-content">
+        <ul>
+          <li>
+            <a href="{% url 'shop:product_list' %}" {% if not selected_category %}class="active"{% endif %}>
+              Все категории
+            </a>
+          </li>
+          {% for category in categories %}
+            <li>
+              <a href="?category={{ category.id }}" {% if selected_category == category.id %}class="active"{% endif %}>
+                {{ category.name }} — {{ category.product_count }} товаров
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Список товаров -->
   <section class="product-list" aria-label="Список товаров">
     {% for product in products %}
       <article class="product-card">
@@ -23,18 +57,43 @@
         {% else %}
           <img src="{% static 'img/notfound.jpg' %}" alt="Изображение не найдено">
         {% endif %}
-        <h3>{{ product.name }}</h3>
+
+        {# Используем get_absolute_url для ссылки на детальную страницу #}
+        <h3><a href="{{ product.get_absolute_url }}">{{ product.name|truncatewords:3 }}</a></h3>
+
+        {# Показываем дату создания с помощью фильтра date #}
+        <p>Добавлено: {{ product.created_at|date:"d.m.Y" }}</p>
+
         {% if product.discount %}
-          <p>
+          <p class="price">
             <span class="old-price">{{ product.price }}₽</span>
             <span class="discount-price">{{ product.discount_price }}₽</span>
           </p>
         {% else %}
-          <p><strong>{{ product.price }}₽</strong></p>
+          <p class="price">{{ product.price }}₽</p>
         {% endif %}
+
         <button type="button">В корзину</button>
       </article>
     {% endfor %}
   </section>
+
+  <!-- Пагинация с сохранением выбранной категории -->
+  <div class="pagination">
+    {% if products.has_previous %}
+      <a href="?page={{ products.previous_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}">← Назад</a>
+    {% endif %}
+
+    <span>Страница {{ products.number }} из {{ products.paginator.num_pages }}</span>
+
+    {% if products.has_next %}
+      <a href="?page={{ products.next_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}">Вперед →</a>
+    {% endif %}
+  </div>
+
+
 </div>
+
+<!-- Скрипт управления окном -->
+<script src="{% static 'js/openwindow.js' %}"></script>
 {% endblock %}
