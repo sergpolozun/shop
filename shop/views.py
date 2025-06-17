@@ -2,11 +2,13 @@ from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Count
 from .models import Product, Category
+from django.db.models import Avg
 
 
 def product_list(request):
     category_id = request.GET.get('category')
     categories = Category.objects.annotate(product_count=Count('products'))
+    c = Category.objects.aggregate(product_avg=Avg("products", default=0))
 
     products = Product.available_products.all()
 
