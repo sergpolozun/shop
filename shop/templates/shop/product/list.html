@@ -6,106 +6,307 @@
 
 {% block content %}
 <div class="shop-container">
-  <div class="win95-header">
+  <div class="shop-header">
     <span>Магазин стритвир одежды POLOS</span>
   </div>
 
-<!-- Отображение состояния аутентификации пользователя -->
-<div class="user-status">
-  {% if user.is_authenticated %}
-    <p>
-      Привет, {{ user.username }}!
-      <form method="post" action="{% url 'logout' %}" style="display:inline;">
-        {% csrf_token %}
-        <button >
-          Выйти
-        </button>
-      </form>
-    </p>
-  {% else %}
-    <p>
-      <a href="{% url 'login' %}">Войти</a> / <a href="{% url 'register' %}">Регистрация</a>
-    </p>
-  {% endif %}
-</div>
-
-
-  <!-- Кнопка для открытия окна категорий -->
-  <div class="category-window-wrapper">
-    <button class="open-category-window">Категории</button>
-
-    <!-- Окно Windows 98 -->
-    <div class="win95-window category-window" id="categoryWindow">
-      <div class="win95-titlebar">
-        <span>Категории</span>
-        <button onclick="closeCategoryWindow()">X</button>
-      </div>
-      <div class="win95-content">
-        <ul>
-          <li>
-            <a href="{% url 'shop:product_list' %}" {% if not selected_category %}class="active"{% endif %}>
-              Все категории
-            </a>
-          </li>
-          {% for category in categories %}
-            <li>
-              <a href="?category={{ category.id }}" {% if selected_category == category.id %}class="active"{% endif %}>
-                {{ category.name }} — {{ category.product_count }} товаров
-                {{ category.product_avg }}
-              </a>
-            </li>
-          {% endfor %}
-        </ul>
-      </div>
+  <!-- Навигационная панель -->
+  <div class="shop-nav">
+    <div class="shop-nav-left">
+      <button class="btn-win98" onclick="openCategories()">Категории</button>
+      <button class="btn-win98" onclick="openFilter()">Фильтрация</button>
+    </div>
+    
+    <div class="shop-nav-right">
+      {% if user.is_authenticated %}
+        <form method="post" action="{% url 'logout' %}" style="display:inline;">
+          {% csrf_token %}
+          <button type="submit" class="btn-win98">Выйти</button>
+        </form>
+      {% else %}
+        <a href="{% url 'login' %}" class="btn-win98">Войти</a>
+      {% endif %}
+      
+      <button class="btn-win98" onclick="openCart()">Корзина</button>
     </div>
   </div>
 
   <!-- Список товаров -->
   <section class="product-list" aria-label="Список товаров">
     {% for product in products %}
-      <article class="product-card">
-        {% if product.image %}
-          <img src="{{ product.image.url }}" alt="{{ product.name }}">
-        {% else %}
-          <img src="{% static 'img/notfound.jpg' %}" alt="Изображение не найдено">
-        {% endif %}
+      <article class="product-card" onclick="openProductModal({{ product.id }})">
+        <div class="product-image">
+          {% if product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.name }}">
+          {% else %}
+            <img src="{% static 'img/notfound.jpg' %}" alt="Изображение не найдено">
+          {% endif %}
+        </div>
 
-        {# Используем get_absolute_url для ссылки на детальную страницу #}
-        <h3><a href="{{ product.get_absolute_url }}">{{ product.name|truncatewords:3 }}</a></h3>
-
-        {# Показываем дату создания с помощью фильтра date #}
-        <p>Добавлено: {{ product.created_at|date:"d.m.Y" }}</p>
-
-        {% if product.discount %}
-          <p class="price">
-            <span class="old-price">{{ product.price }}₽</span>
-            <span class="discount-price">{{ product.discount_price }}₽</span>
-          </p>
-        {% else %}
-          <p class="price">{{ product.price }}₽</p>
-        {% endif %}
-
-        <button type="button">В корзину</button>
+        <div class="product-info">
+          <h3>{{ product.name|truncatewords:3 }}</h3>
+          <p class="product-date">Добавлено: {{ product.created_at|date:"d.m.Y" }}</p>
+          
+          {% if product.discount %}
+            <div class="product-price">
+              <span class="old-price">{{ product.price }}₽</span>
+              <span class="discount-price">{{ product.discount_price }}₽</span>
+              <span class="discount-badge">-{{ product.discount }}%</span>
+            </div>
+          {% else %}
+            <div class="product-price">
+              <span class="current-price">{{ product.price }}₽</span>
+            </div>
+          {% endif %}
+        </div>
       </article>
     {% endfor %}
   </section>
-
-  <!-- Пагинация с сохранением выбранной категории -->
-  <div class="pagination">
-    {% if products.has_previous %}
-      <a href="?page={{ products.previous_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}">← Назад</a>
-    {% endif %}
-
-    <span>Страница {{ products.number }} из {{ products.paginator.num_pages }}</span>
-
-    {% if products.has_next %}
-      <a href="?page={{ products.next_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}">Вперед →</a>
-    {% endif %}
-  </div>
-
-
 </div>
 
-<!-- Скрипт управления окном -->
-<script src="{% static 'js/openwindow.js' %}"></script>
+<!-- Модальное окно товара -->
+<div id="productModal" class="modal-win98">
+    <div class="modal-content-win98">
+        <div class="modal-header-win98">
+            <h3 id="modalTitle">Детали товара</h3>
+            <button class="close-btn-win98" onclick="closeProductModal()">×</button>
+        </div>
+        <div class="modal-body-win98" id="modalBody">
+            <!-- Контент будет загружен через AJAX -->
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно категорий -->
+<div id="categoriesModal" class="modal-win98">
+    <div class="modal-content-win98">
+        <div class="modal-header-win98">
+            <h3>Выберите категорию</h3>
+            <button class="close-btn-win98" onclick="closeCategories()">×</button>
+        </div>
+        <div class="modal-body-win98">
+            <div class="category-item" data-category="all" onclick="selectCategory('all')">
+                Все категории
+            </div>
+            {% for category in categories %}
+            <div class="category-item" data-category="{{ category.id }}" onclick="selectCategory({{ category.id }})">
+                {{ category.name }}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно фильтрации -->
+<div id="filterModal" class="modal-win98">
+    <div class="modal-content-win98">
+        <div class="modal-header-win98">
+            <h3>Фильтрация товаров</h3>
+            <button class="close-btn-win98" onclick="closeFilter()">×</button>
+        </div>
+        <div class="modal-body-win98">
+            <form id="filterForm">
+                <div class="filter-section">
+                    <h4>Сортировка по:</h4>
+                    <div class="radio-group">
+                        <label class="radio-item">
+                            <input type="radio" name="sort" value="popularity" {% if current_sort == 'popularity' %}checked{% endif %}>
+                            <span class="radio-custom"></span>
+                            Популярности
+                        </label>
+                        <label class="radio-item">
+                            <input type="radio" name="sort" value="price" {% if current_sort == 'price' %}checked{% endif %}>
+                            <span class="radio-custom"></span>
+                            Цене
+                        </label>
+                        <label class="radio-item">
+                            <input type="radio" name="sort" value="date" {% if current_sort == 'date' %}checked{% endif %}>
+                            <span class="radio-custom"></span>
+                            Дате
+                        </label>
+                        <label class="radio-item">
+                            <input type="radio" name="sort" value="name" {% if current_sort == 'name' %}checked{% endif %}>
+                            <span class="radio-custom"></span>
+                            Названию
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="filter-section">
+                    <h4>Порядок сортировки:</h4>
+                    <div class="radio-group">
+                        <label class="radio-item">
+                            <input type="radio" name="order" value="desc" {% if current_order == 'desc' %}checked{% endif %}>
+                            <span class="radio-custom"></span>
+                            Убывание
+                        </label>
+                        <label class="radio-item">
+                            <input type="radio" name="order" value="asc" {% if current_order == 'asc' %}checked{% endif %}>
+                            <span class="radio-custom"></span>
+                            Возрастание
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="filter-section">
+                    <h4>Диапазон цен:</h4>
+                    <div class="price-range">
+                        <div class="price-input-group">
+                            <label>От:</label>
+                            <input type="number" name="min_price" id="minPrice" 
+                                   placeholder="0" 
+                                   value="{{ current_min_price|default:'' }}"
+                                   min="0" 
+                                   step="1"
+                                   class="price-input">
+                        </div>
+                        <div class="price-input-group">
+                            <label>До:</label>
+                            <input type="number" name="max_price" id="maxPrice" 
+                                   placeholder="{{ price_stats.max_price|default:'10000' }}" 
+                                   value="{{ current_max_price|default:'' }}"
+                                   min="0" 
+                                   step="1"
+                                   class="price-input">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="filter-buttons">
+                    <button type="submit" class="btn-win98">Применить</button>
+                    <button type="button" class="btn-win98" onclick="resetFilter()">Сбросить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Функции для модального окна товара
+function openProductModal(productId) {
+    fetch(`/shop/product/${productId}/detail/`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('modalTitle').textContent = data.name;
+            document.getElementById('modalBody').innerHTML = data.html;
+            document.getElementById('productModal').style.display = 'flex';
+        })
+        .catch(error => {
+            document.getElementById('modalBody').innerHTML = '<p>Ошибка загрузки данных</p>';
+            document.getElementById('productModal').style.display = 'flex';
+        });
+}
+
+function closeProductModal() {
+    document.getElementById('productModal').style.display = 'none';
+}
+
+// Функции для модального окна категорий
+function openCategories() {
+    document.getElementById('categoriesModal').style.display = 'flex';
+    highlightCurrentCategory();
+}
+
+function closeCategories() {
+    document.getElementById('categoriesModal').style.display = 'none';
+}
+
+function selectCategory(categoryId) {
+    const url = new URL(window.location);
+    if (categoryId === 'all') {
+        url.searchParams.delete('category');
+    } else {
+        url.searchParams.set('category', categoryId);
+    }
+    window.location.href = url.toString();
+}
+
+function highlightCurrentCategory() {
+    const currentCategory = '{{ current_category }}';
+    const categoryItems = document.querySelectorAll('.category-item');
+    
+    categoryItems.forEach(item => {
+        item.classList.remove('selected');
+        if (item.dataset.category === currentCategory || 
+            (currentCategory === '' && item.dataset.category === 'all')) {
+            item.classList.add('selected');
+        }
+    });
+}
+
+// Функции для модального окна фильтрации
+function openFilter() {
+    document.getElementById('filterModal').style.display = 'flex';
+}
+
+function closeFilter() {
+    document.getElementById('filterModal').style.display = 'none';
+}
+
+// Обработчик формы фильтрации
+document.getElementById('filterForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const url = new URL(window.location);
+    
+    // Обновляем параметры сортировки
+    url.searchParams.set('sort', formData.get('sort'));
+    url.searchParams.set('order', formData.get('order'));
+    
+    // Обновляем параметры диапазона цен
+    const minPrice = formData.get('min_price');
+    const maxPrice = formData.get('max_price');
+    
+    if (minPrice && minPrice.trim() !== '') {
+        url.searchParams.set('min_price', minPrice);
+    } else {
+        url.searchParams.delete('min_price');
+    }
+    
+    if (maxPrice && maxPrice.trim() !== '') {
+        url.searchParams.set('max_price', maxPrice);
+    } else {
+        url.searchParams.delete('max_price');
+    }
+    
+    // Сохраняем текущую категорию
+    const currentCategory = '{{ current_category }}';
+    if (currentCategory && currentCategory !== 'all' && currentCategory !== 'None') {
+        url.searchParams.set('category', currentCategory);
+    } else {
+        url.searchParams.delete('category');
+    }
+    
+    window.location.href = url.toString();
+});
+
+function resetFilter() {
+    document.querySelector('input[name="sort"][value="popularity"]').checked = true;
+    document.querySelector('input[name="order"][value="desc"]').checked = true;
+    document.getElementById('minPrice').value = '';
+    document.getElementById('maxPrice').value = '';
+}
+
+function openCart() {
+    alert('Корзина пока не реализована');
+}
+
+// Закрытие модальных окон при клике вне их
+window.onclick = function(event) {
+    const productModal = document.getElementById('productModal');
+    const categoriesModal = document.getElementById('categoriesModal');
+    const filterModal = document.getElementById('filterModal');
+    
+    if (event.target === productModal) {
+        closeProductModal();
+    }
+    if (event.target === categoriesModal) {
+        closeCategories();
+    }
+    if (event.target === filterModal) {
+        closeFilter();
+    }
+}
+</script>
 {% endblock %}

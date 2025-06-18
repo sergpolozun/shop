@@ -1,0 +1,61 @@
+{% extends "main/base.html" %}
+{% load static %}
+
+{% block title %}Статистика | POLOS{% endblock %}
+
+{% block content %}
+<div class="stats-container">
+  <div class="win95-header">
+    <span>Статистика магазина</span>
+  </div>
+
+  <div class="stats-content">
+    <div class="stat-card">
+      <h3>Общая статистика</h3>
+      <p>Всего продуктов: {{ total_products }}</p>
+      <p>Доступных продуктов: {{ available_products }}</p>
+      <p>Есть товары со скидкой: {% if has_discounted_products %}Да{% else %}Нет{% endif %}</p>
+    </div>
+
+    <div class="stat-card">
+      <h3>Статистика по категориям</h3>
+      {% for category in category_stats %}
+        <p>{{ category.name }}: {{ category.product_count }} товаров</p>
+      {% endfor %}
+    </div>
+
+    <div class="stat-card">
+      <h3>Цены товаров</h3>
+      <p>Количество товаров с ценами: {{ price_stats|length }}</p>
+    </div>
+  </div>
+</div>
+
+<style>
+.stats-container {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 20px;
+  background: #c0c0c0;
+  border: 2px outset #ffffff;
+}
+
+.stats-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.stat-card {
+  padding: 15px;
+  background: #ffffff;
+  border: 2px inset #ffffff;
+}
+
+.stat-card h3 {
+  margin-top: 0;
+  color: #000080;
+}
+</style>
+{% endblock %} 
