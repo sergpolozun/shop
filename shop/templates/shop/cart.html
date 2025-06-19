@@ -1,0 +1,128 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Корзина{% endblock %}
+
+{% block content %}
+<div class="shop-container">
+  <div class="shop-header">
+    <span>Корзина</span>
+  </div>
+
+  <div class="shop-nav">
+    <div class="shop-nav-left">
+      <a href="{% url 'shop:product_list' %}" class="btn-win98">В магазин</a>
+    </div>
+    <div class="shop-nav-right">
+      <button class="btn-win98" onclick="openClearCartModal()">Очистить корзину</button>
+    </div>
+  </div>
+
+  <section class="cart-list-win98" aria-label="Список товаров в корзине">
+    {% if cart_items %}
+      <div class="cart-table-wrap-win98">
+      <table class="table-win98 cart-table-win98">
+        <thead>
+          <tr>
+            <th>Изображение</th>
+            <th>Товар</th>
+            <th>Цена</th>
+            <th>Количество</th>
+            <th>Сумма</th>
+            <th></th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in cart_items %}
+          <tr>
+            <td style="text-align:center;">
+              {% if item.product.image %}
+                <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="cart-img-win98 cart-img-large">
+              {% else %}
+                <img src="{% static 'img/notfound.jpg' %}" alt="Нет фото" class="cart-img-win98 cart-img-large">
+              {% endif %}
+            </td>
+            <td style="color:#000;">{{ item.product.name }}</td>
+            <td style="color:#000;">{{ item.product.price }} ₽</td>
+            <td>
+              <form method="post" action="{% url 'shop:cart_update' item.product.id %}" style="display:inline;white-space:nowrap;" onsubmit="return false;">
+                {% csrf_token %}
+                <button type="button" onclick="changeQty(this, -1)" class="btn-win98 btn-qty" {% if item.quantity <= 1 %}disabled{% endif %}>−</button>
+                <input type="number" name="quantity" value="{{ item.quantity }}" class="cart-qty-input-win98 no-arrows" min="1" style="width:56px;" data-price="{{ item.product.price }}">
+                <button type="button" onclick="changeQty(this, 1)" class="btn-win98 btn-qty">+</button>
+                <button type="submit" style="display:none"></button>
+              </form>
+            </td>
+            <td class="cart-item-subtotal" data-subtotal="{{ item.subtotal }}">{{ item.subtotal }} ₽</td>
+            <td>
+              <a href="{% url 'shop:cart_remove' item.product.id %}" class="btn-win98">Удалить</a>
+            </td>
+            <td>
+              <button class="btn-win98" onclick="openProductModal({{ item.product.id }})">Товар</button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      </div>
+      <div class="cart-bottom-flex">
+        <div class="cart-total-win98"><b>Итого: {{ total }} ₽</b></div>
+        <button class="btn-win98 cart-order-btn" onclick="openPaymentModal()">Оформить заказ</button>
+      </div>
+    {% else %}
+      <div style="margin:40px 0;text-align:center;font-size:18px;">Корзина пуста</div>
+    {% endif %}
+  </section>
+</div>
+
+<!-- Модальное окно товара -->
+<div id="productModal" class="modal-win98">
+    <div class="modal-content-win98">
+        <div class="modal-header-win98">
+            <h3 id="modalTitle">Детали товара</h3>
+            <button class="close-btn-win98" onclick="closeProductModal()">×</button>
+        </div>
+        <div class="modal-body-win98" id="modalBody">
+            <!-- Контент будет загружен через AJAX -->
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно оплаты -->
+<div id="paymentModal" class="modal-win98">
+  <div class="modal-content-win98">
+    <div class="modal-header-win98">
+      <h3>Оплата заказа</h3>
+      <button class="close-btn-win98" onclick="closePaymentModal()">×</button>
+    </div>
+    <div class="modal-body-win98">
+      <!-- Здесь будет форма оплаты -->
+      <div style="text-align:center;color:#888;">(Здесь будет форма оплаты)</div>
+    </div>
+  </div>
+</div>
+
+<!-- Модальное окно подтверждения очистки корзины -->
+<div id="clearCartModal" class="modal-win98">
+  <div class="modal-content-win98">
+    <div class="modal-header-win98">
+      <h3>Подтверждение</h3>
+      <button class="close-btn-win98" onclick="closeClearCartModal()">×</button>
+    </div>
+    <div class="modal-body-win98" style="text-align:center;">
+      <p>Вы действительно хотите очистить корзину?</p>
+      <form method="post" action="{% url 'shop:cart_clear' %}" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="btn-win98">Да, очистить</button>
+      </form>
+      <button class="btn-win98" onclick="closeClearCartModal()">Отмена</button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'js/list.js' %}"></script>
+<script src="{% static 'js/cart.js' %}"></script>
+{% endblock %} 

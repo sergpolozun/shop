@@ -4,11 +4,13 @@ from django.db.models import Count, Q, Min, Max, Avg
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Product, Category, Tag, Review, ProductLink, ProductView
+from .models import Product, Category, Tag, Review, ProductLink, ProductView, CartItem, Favorite
 from .forms import ProductForm, CategoryForm
 from django.db.models import Avg
 from django.utils import timezone
 import json
+from django.urls import reverse
+from django.middleware.csrf import get_token
 
 
 def get_client_ip(request):
@@ -27,10 +29,10 @@ def product_list(request):
     category_id = request.GET.get('category')
     min_price = request.GET.get('min_price')
     max_price = request.GET.get('max_price')
-    
+
     # Базовый queryset
     products = Product.objects.all()
-    
+
     # Фильтрация по категории
     if category_id and category_id != 'all' and category_id != 'None':
         try:
@@ -80,10 +82,25 @@ def product_list(request):
             '-name' if order == 'desc' else 'name'
         )
     
+    # Пагинация
+    paginator = Paginator(products, 20)  # 20 товаров на страницу
+    page_number = request.GET.get('page')
+    try:
+        page_obj = paginator.page(page_number)
+    except PageNotAnInteger:
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        page_obj = paginator.page(paginator.num_pages)
+    
     categories = Category.objects.all()
     
+    favorite_ids = []
+    if request.user.is_authenticated:
+        favorite_ids = list(Favorite.objects.filter(user=request.user).values_list('product_id', flat=True))
+    
     context = {
-        'products': products,
+        'products': page_obj,
+        'page_obj': page_obj,
         'categories': categories,
         'current_category': category_id,
         'current_sort': sort_by,
@@ -91,6 +108,7 @@ def product_list(request):
         'current_min_price': min_price,
         'current_max_price': max_price,
         'price_stats': price_stats,
+        'favorite_ids': favorite_ids,
     }
     
     return render(request, 'shop/product/list.html', context)
@@ -130,18 +148,89 @@ def product_detail_json(request, pk):
         defaults={'viewed_at': timezone.now()}
     )
     
+    # Проверяем, есть ли товар в корзине
+    cart_quantity = 0
+    if request.user.is_authenticated:
+        try:
+            cart_item = CartItem.objects.get(user=request.user, product=product)
+            cart_quantity = cart_item.quantity
+        except CartItem.DoesNotExist:
+            pass
+    else:
+        cart = request.session.get('cart', {})
+        cart_quantity = cart.get(str(product.id), 0)
+    
+    # Проверяем, есть ли товар в избранном
+    is_favorite = False
+    if request.user.is_authenticated:
+        is_favorite = Favorite.objects.filter(user=request.user, product=product).exists()
+    
+    # Определяем статус товара
+    status_text = ""
+    if product.status == 'sale':
+        status_text = '<span class="product-status-sale">Распродажа</span>'
+    elif product.status == 'new':
+        status_text = '<span class="product-status-new">Новый</span>'
+    # Если статус обычный — ничего не выводим
+    
     # Формируем HTML для модального окна
+    if product.image:
+        image_html = f'<img src="{product.image.url}" alt="{product.name}" class="product-detail-image">'
+    else:
+        image_html = '<img src="/static/img/notfound.jpg" alt="Нет фото" class="product-detail-image">'
+    
+    # Формируем HTML для цены с учетом скидки
+    if product.discount > 0:
+        price_html = f"""
+        <p class="price">
+            <span class="old-price">{product.price} ₽</span>
+            <span class="discount-price">{product.discount_price()} ₽</span>
+            <span class="discount-badge">-{product.discount}%</span>
+        </p>
+        """
+    else:
+        price_html = f'<p class="price">{product.price} ₽</p>'
+    
+    # Формируем HTML для кнопки/формы в зависимости от наличия в корзине
+    if cart_quantity > 0:
+        # Товар уже в корзине - показываем форму с количеством
+        cart_html = f"""
+        <form method="post" action="/shop/cart/add/{product.id}/" style="display:inline;white-space:nowrap;" id="updateForm_{product.id}">
+            <input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">
+            <button type="button" onclick="changeQtyModal(this, -1)" class="btn-win98 btn-qty">−</button>
+            <input type="number" name="quantity" value="{cart_quantity}" class="cart-qty-input-win98 no-arrows" min="1" style="width:56px;" data-price="{product.price}">
+            <button type="button" onclick="changeQtyModal(this, 1)" class="btn-win98 btn-qty">+</button>
+        </form>
+        """
+    else:
+        # Товар не в корзине - показываем кнопку добавления
+        cart_html = f"""
+        <button class="btn-win98" onclick="addToCartSimple({product.id})">Добавить в корзину</button>
+        """
+    
+    # Формируем HTML для кнопки избранного
+    favorite_text = "Удалить из избранного" if is_favorite else "Добавить в избранное"
+    favorite_class = "btn-win98 favorite-active" if is_favorite else "btn-win98"
+    favorite_html = f"""
+    <button class="{favorite_class}" onclick="toggleFavoriteModal({product.id}, this)">{favorite_text}</button>
+    """
+    
     html_content = f"""
     <div class="product-detail-win98">
         <div class="product-image-container">
-            {f'<img src="{product.image.url}" alt="{product.name}" class="product-detail-image">' if product.image else '<div class="no-image-large">Нет фото</div>'}
+            {image_html}
         </div>
         <div class="product-info">
             <h4>{product.name}</h4>
-            <p class="price">{product.price} ₽</p>
+            {price_html}
             <p class="description">{product.descriptions}</p>
             <p class="category">Категория: {product.category.name}</p>
             <p class="created">Добавлен: {product.created_at.strftime('%d.%m.%Y')}</p>
+            {status_text}
+            <div class="product-actions">
+                {cart_html}
+                {favorite_html}
+            </div>
         </div>
     </div>
     """
@@ -228,3 +317,165 @@ def product_stats(request):
         'price_stats': price_stats,
         'has_discounted_products': has_discounted_products,
     })
+
+
+def cart_view(request):
+    if request.user.is_authenticated:
+        cart_items_qs = CartItem.objects.filter(user=request.user).select_related('product')
+        cart_items = []
+        total = 0
+        for item in cart_items_qs:
+            subtotal = item.product.price * item.quantity
+            total += subtotal
+            cart_items.append({
+                'product': item.product,
+                'quantity': item.quantity,
+                'subtotal': subtotal
+            })
+        return render(request, 'shop/cart.html', {
+            'cart_items': cart_items,
+            'total': total
+        })
+    else:
+        cart = request.session.get('cart', {})
+        product_ids = cart.keys()
+        products = Product.objects.filter(id__in=product_ids)
+        cart_items = []
+        total = 0
+        for product in products:
+            quantity = cart.get(str(product.id), 0)
+            subtotal = product.price * quantity
+            total += subtotal
+            cart_items.append({
+                'product': product,
+                'quantity': quantity,
+                'subtotal': subtotal
+            })
+        return render(request, 'shop/cart.html', {
+            'cart_items': cart_items,
+            'total': total
+        })
+
+
+def cart_add(request, product_id):
+    if request.method == 'POST':
+        try:
+            quantity = int(request.POST.get('quantity', 1))
+            if quantity < 1:
+                quantity = 1
+        except (ValueError, TypeError):
+            quantity = 1
+        
+        if request.user.is_authenticated:
+            product = get_object_or_404(Product, id=product_id)
+            cart_item, created = CartItem.objects.get_or_create(user=request.user, product=product)
+            # Если товар уже был в корзине, заменяем количество, иначе устанавливаем
+            cart_item.quantity = quantity
+            cart_item.save()
+        else:
+            cart = request.session.get('cart', {})
+            cart[str(product_id)] = quantity
+            request.session['cart'] = cart
+        
+        return JsonResponse({'success': True, 'message': f'Товар добавлен в корзину (количество: {quantity})'})
+    else:
+        # Для GET-запросов оставляем старую логику
+        if request.user.is_authenticated:
+            product = get_object_or_404(Product, id=product_id)
+            cart_item, created = CartItem.objects.get_or_create(user=request.user, product=product)
+            if not created:
+                cart_item.quantity += 1
+                cart_item.save()
+            return redirect(request.META.get('HTTP_REFERER', reverse('shop:cart')))
+        else:
+            cart = request.session.get('cart', {})
+            cart[str(product_id)] = cart.get(str(product_id), 0) + 1
+            request.session['cart'] = cart
+            return redirect(request.META.get('HTTP_REFERER', reverse('shop:cart')))
+
+
+def cart_remove(request, product_id):
+    if request.user.is_authenticated:
+        CartItem.objects.filter(user=request.user, product_id=product_id).delete()
+        return redirect('shop:cart')
+    else:
+        cart = request.session.get('cart', {})
+        if str(product_id) in cart:
+            del cart[str(product_id)]
+            request.session['cart'] = cart
+        return redirect('shop:cart')
+
+
+def cart_clear(request):
+    if request.user.is_authenticated:
+        CartItem.objects.filter(user=request.user).delete()
+        return redirect('shop:cart')
+    else:
+        request.session['cart'] = {}
+        return redirect('shop:cart')
+
+
+def cart_update(request, product_id):
+    if request.method == 'POST':
+        if request.user.is_authenticated:
+            try:
+                quantity = int(request.POST.get('quantity', 1))
+                if quantity < 1:
+                    quantity = 1
+                cart_item, created = CartItem.objects.get_or_create(user=request.user, product_id=product_id)
+                cart_item.quantity = quantity
+                cart_item.save()
+            except (ValueError, TypeError):
+                pass
+            return redirect('shop:cart')
+        else:
+            cart = request.session.get('cart', {})
+            try:
+                quantity = int(request.POST.get('quantity', 1))
+                if quantity < 1:
+                    quantity = 1
+                cart[str(product_id)] = quantity
+                request.session['cart'] = cart
+            except (ValueError, TypeError):
+                pass
+            return redirect('shop:cart')
+    return redirect('shop:cart')
+
+
+@login_required
+def favorite_toggle(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    fav, created = Favorite.objects.get_or_create(user=request.user, product=product)
+    if not created:
+        fav.delete()
+        return JsonResponse({'status': 'removed'})
+    return JsonResponse({'status': 'added'})
+
+
+@login_required
+def favorite_list(request):
+    favorites = Favorite.objects.filter(user=request.user).select_related('product')
+    products = [fav.product for fav in favorites]
+    categories = Category.objects.all()
+    
+    # Получаем ID избранных товаров для правильного отображения
+    favorite_ids = list(Favorite.objects.filter(user=request.user).values_list('product_id', flat=True))
+    
+    # Пагинация для избранных товаров
+    paginator = Paginator(products, 20)  # 20 товаров на страницу
+    page_number = request.GET.get('page')
+    try:
+        page_obj = paginator.page(page_number)
+    except PageNotAnInteger:
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        page_obj = paginator.page(paginator.num_pages)
+    
+    context = {
+        'products': page_obj,
+        'page_obj': page_obj,
+        'categories': categories,
+        'favorite_page': True,
+        'favorite_ids': favorite_ids,
+    }
+    return render(request, 'shop/product/favorite.html', context)

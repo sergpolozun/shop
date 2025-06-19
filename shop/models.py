@@ -1,6 +1,7 @@
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
+from django.contrib.auth.models import User
 
 
 # --- Кастомный менеджер ---
@@ -175,3 +176,32 @@ class ProductView(models.Model):
     
     def __str__(self):
         return f'Просмотр {self.product.name} с {self.ip_address}'
+
+
+class CartItem(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='cart_items')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'product')
+        verbose_name = 'Товар в корзине'
+        verbose_name_plural = 'Корзина пользователей'
+
+    def __str__(self):
+        return f"{self.product.name} x{self.quantity} для {self.user.username}"
+
+
+class Favorite(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='favorites')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'product')
+        verbose_name = 'Избранный товар'
+        verbose_name_plural = 'Избранные товары'
+
+    def __str__(self):
+        return f"{self.product.name} в избранном у {self.user.username}"

@@ -269,51 +269,113 @@ body {
 
 
 .shop-container {
-  padding-bottom: 40px; 
-  background: #c2f213;
-  min-height: 100vh;
-  width: 100%;
+  padding-top: 110px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding-left: 20px;
+  padding-right: 20px;
 }
 
 .shop-header {
-  background: #001ad1;
+  background: #000080;
   color: white;
-  font-weight: bold;
-  font-family: 'MS Sans Serif', Tahoma, sans-serif;
-  font-size: 1.5rem;
-  padding: 6px 12px;
-  border: 2px solid black;
-  box-shadow:
-    inset 1px 1px 0 #fff,
-    inset -1px -1px 0 #000080;
-  user-select: none;
-  margin-bottom: 0;
+  padding: 15px 20px;
   text-align: center;
-  text-shadow: 1px 1px 0 #000080;
+  font-size: 18px;
+  font-weight: bold;
+  border: 2px outset #000;
+  border-bottom: 2px outset #000;
+  margin-bottom: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .shop-nav {
   background: #c0c0c0;
-  padding: 10px 20px;
+  border: 2px outset #000;
+  border-top: none;
+  border-right: 2px outset #808080;
+  border-bottom: 2px outset #808080;
+  padding:  12px;
   margin-bottom: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border: 2px solid #000;
+  width: 1360px;
+  flex-wrap: wrap;
+  gap: 10px;
   max-width: 1400px;
   margin-left: auto;
   margin-right: auto;
+  margin-top: -10px;
   box-sizing: border-box;
+  position: fixed;
+  top: 62px;
+  left: 0;
+  right: 0;
+  z-index: 999;
 }
 
 .shop-nav-left {
   display: flex;
-  gap: 10px;
+  gap: 8px;
+}
+
+.shop-nav-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
 }
 
 .shop-nav-right {
   display: flex;
-  gap: 10px;
+  gap: 8px;
+}
+
+.pagination-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.pagination-info span {
+  font-size: 12px;
+  color: #000;
+  font-weight: bold;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.pagination-controls .btn-win98 {
+  min-width: 28px;
+  height: 24px;
+  padding: 2px 6px;
+  font-size: 11px;
+}
+
+.current-page {
+  background: #000080;
+  color: white;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: bold;
+  border: 1px solid #000;
+  min-width: 28px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .shop-nav button,
@@ -350,7 +412,7 @@ body {
   gap: 10px;
   padding: 10px;
   max-width: 1400px;
-  margin: 0 auto;
+  margin: 0 auto 40px auto;
   background: #d4d4d4;
   box-sizing: border-box;
   border: 4px solid black; /* внешняя черная рамка */
@@ -460,7 +522,7 @@ body {
 }
 
 .discount-badge {
-  background: #ff0000;
+  background: #008483;
   color: white;
   padding: 2px 6px;
   font-size: 10px;
@@ -835,8 +897,32 @@ body {
 .product-info .price {
     font-size: 18px;
     font-weight: bold;
-    color: #000;
     margin: 10px 0;
+    color: #000;
+}
+
+.product-info .price .old-price {
+    font-size: 14px;
+    color: #999;
+    text-decoration: line-through;
+    margin-right: 10px;
+}
+
+.product-info .price .discount-price {
+    font-size: 18px;
+    font-weight: bold;
+    color: #744785;
+    margin-right: 10px;
+}
+
+.product-info .price .discount-badge {
+    background: #008483;
+    color: white;
+    padding: 2px 6px;
+    font-size: 10px;
+    font-weight: bold;
+    border-radius: 2px;
+    vertical-align: middle;
 }
 
 .product-info .description {
@@ -847,10 +933,43 @@ body {
 }
 
 .product-info .category,
-.product-info .created {
+.product-info .created,
+.product-info .status {
     font-size: 11px;
     color: #666;
     margin: 5px 0;
+}
+
+.product-info .status {
+    font-size: 11px;
+    color: #000080;
+    font-weight: bold;
+    margin: 5px 0;
+    padding: 2px 6px;
+    background: #e0e0e0;
+    border: 1px solid #000;
+    display: inline-block;
+}
+
+/* Стили для действий товара в модальном окне */
+.product-actions {
+    margin-top: 15px;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.product-actions form {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    justify-content: flex-start;
+}
+
+.product-actions .btn-win98 {
+    margin-right: 10px;
+    margin-bottom: 5px;
 }
 
 /* Модальные окна в стиле Windows 98 */
@@ -942,7 +1061,7 @@ body {
 
 .category-item.selected {
     background: #000080;
-    color: white;
+  color: white;
     border: 1px solid #000;
 }
 
@@ -1013,6 +1132,335 @@ body {
 
 .filter-buttons .btn-win98 {
     min-width: 80px;
+}
+
+.product-status-sale, .product-status-new {
+    color: #8000ff;
+    font-weight: bold;
+    font-size: 12px;
+    margin: 5px 0 0 0;
+    display: block;
+}
+
+.btn-win98 {
+    display: inline-block;
+    background: #c0c0c0;
+    color: #000;
+    border: 2px outset #fff;
+    border-right: 2px outset #808080;
+    border-bottom: 2px outset #808080;
+    font-family: "Pixelated MS Sans Serif", sans-serif;
+    font-size: 13px;
+    padding: 4px 18px;
+    margin: 0 4px;
+    cursor: pointer;
+    outline: none;
+    box-shadow: none;
+    text-align: center;
+    text-decoration: none;
+    min-width: 80px;
+    min-height: 28px;
+    transition: background 0.1s, border 0.1s;
+}
+
+.btn-win98:active {
+    border: 2px inset #000;
+    background: #e0e0e0;
+}
+
+.btn-win98:focus {
+    outline: 1px dotted #000080;
+}
+
+.btn-win98:hover {
+    background: #e0e0e0;
+}
+
+.cart-list-win98 {
+    margin: 0 auto;
+    max-width: 1400px;
+    min-width: 400px;
+    background: #e0e0e0;
+    border: 2px solid #000;
+    border-radius: 4px;
+    box-shadow: 4px 4px 0 #888;
+    padding: 24px 18px 32px 18px;
+    margin-top: 0;
+    color: #000;
+    width: 100%;
+}
+
+.cart-table-wrap-win98 {
+    overflow-x: auto;
+}
+
+.cart-table-win98 {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border: 2px solid #000;
+    margin-bottom: 0;
+}
+
+.cart-table-win98 th, .cart-table-win98 td {
+    border: 1px solid #888;
+    padding: 8px 10px;
+    font-size: 13px;
+    text-align: center;
+}
+
+.cart-table-win98 th {
+    background: #c0c0c0;
+    color: #000;
+    font-weight: bold;
+}
+
+.cart-table-win98 tr:nth-child(even) {
+    background: #f8f8f8;
+}
+
+.cart-img-win98 {
+    width: 140px;
+    height: 140px;
+    object-fit: contain;
+    border: 1px solid #c0c0c0;
+    background: #fff;
+    margin: 0 auto;
+    display: block;
+}
+
+.cart-total-win98 {
+    margin-top: 18px;
+    text-align: right;
+    font-size: 18px;
+    color: #000;
+    background: #c0c0c0;
+    border: 2px inset #fff;
+    padding: 10px 18px;
+    border-radius: 4px;
+    box-shadow: 2px 2px 0 #888;
+    display: inline-block;
+    float: right;
+}
+
+.cart-table-win98 td, .cart-table-win98 th {
+    color: #000;
+    height: 56px;
+    vertical-align: middle;
+}
+
+.cart-qty-input-win98 {
+    width: 56px;
+    height: 32px;
+    font-size: 15px;
+    text-align: center;
+    border: 2px inset #fff;
+    border-right: 2px outset #808080;
+    border-bottom: 2px outset #808080;
+    background: #fff;
+    color: #000;
+    font-family: "Pixelated MS Sans Serif", sans-serif;
+    outline: none;
+    margin: 0 2px;
+}
+
+.cart-qty-input-win98:focus {
+    outline: 1px dotted #000080;
+}
+
+.cart-img-large {
+    width: 140px;
+    height: 140px;
+    object-fit: contain;
+}
+
+.btn-qty {
+    min-width: 28px;
+    min-height: 28px;
+    padding: 0 8px;
+    font-size: 18px;
+    margin: 0 2px;
+}
+
+.no-arrows::-webkit-inner-spin-button,
+.no-arrows::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.no-arrows {
+    -moz-appearance: textfield;
+}
+
+.cart-bottom-flex {
+  display: flex;
+  justify-content: flex-end;
+  align-items: stretch;
+  gap: 18px;
+  margin-top: 18px;
+}
+.cart-total-win98 {
+  margin-top: 0;
+  float: none;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  font-size: 20px;
+  font-weight: bold;
+  padding: 0 32px;
+}
+.cart-order-btn {
+  font-size: 20px;
+  font-weight: bold;
+  height: 56px;
+  background: #c0c0c0;
+  border: 2px outset #fff;
+  border-right: 2px outset #808080;
+  border-bottom: 2px outset #808080;
+  color: #000;
+  box-shadow: 2px 2px 0 #888;
+  display: flex;
+  align-items: center;
+  padding: 0 32px;
+  min-width: 220px;
+}
+.cart-order-btn:active {
+  border: 2px inset #000;
+  background: #e0e0e0;
+}
+
+/* Стили для формы добавления в корзину в модальном окне */
+.product-actions form {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 15px;
+}
+
+.product-actions .btn-qty {
+    min-width: 28px;
+    min-height: 28px;
+    padding: 0 8px;
+    font-size: 18px;
+    margin: 0 2px;
+}
+
+.product-actions .cart-qty-input-win98 {
+    width: 56px;
+    height: 32px;
+    font-size: 15px;
+    text-align: center;
+    border: 2px inset #fff;
+    border-right: 2px outset #808080;
+    border-bottom: 2px outset #808080;
+    background: #fff;
+    color: #000;
+    font-family: "Pixelated MS Sans Serif", sans-serif;
+    outline: none;
+    margin: 0 2px;
+}
+
+.product-actions .cart-qty-input-win98:focus {
+    outline: 1px dotted #000080;
+}
+
+/* Стили для уведомлений в стиле Windows 98 */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #c0c0c0;
+    color: #000;
+    padding: 15px 20px;
+    border: 2px outset #ffffff;
+    border-right: 2px outset #808080;
+    border-bottom: 2px outset #808080;
+    z-index: 10000;
+    font-family: "Pixelated MS Sans Serif", sans-serif;
+    font-size: 14px;
+    box-shadow: 2px 2px 0 #888;
+    animation: slideIn 0.3s ease-out;
+    min-width: 250px;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.notification-success {
+    background: #c0c0c0 !important;
+    color: #000 !important;
+    border: 2px outset #ffffff !important;
+    border-right: 2px outset #808080 !important;
+    border-bottom: 2px outset #808080 !important;
+}
+
+.notification-error {
+    background: #c0c0c0 !important;
+    color: #000 !important;
+    border: 2px outset #ffffff !important;
+    border-right: 2px outset #808080 !important;
+    border-bottom: 2px outset #808080 !important;
+}
+
+/* Стили для статуса корзины в модальном окне */
+.cart-status {
+    background: #4CAF50;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+    border: 1px solid #45a049;
+}
+
+/* Стили для избранных товаров */
+.favorite-product {
+  background-color: #c0c0c0 !important;
+}
+
+.favorite-product .product-info h3,
+.favorite-product .product-info p,
+.favorite-product .product-price {
+  color: #000 !important;
+}
+
+/* Увеличиваем размер модального окна */
+.modal-content-win98 {
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  background: #c0c0c0;
+  border: 2px outset #fff;
+  border-right: 2px outset #808080;
+  border-bottom: 2px outset #808080;
+  box-shadow: 2px 2px 0 #888;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Стили для кнопки избранного в модальном окне */
+.favorite-active {
+  background: #008483 !important;
+  color: #ffffff !important;
+  border: 2px inset #000 !important;
+}
+
+.favorite-active:hover {
+  background: #006666 !important;
+  color: #ffffff !important;
+}
+
+.product-card {
+  position: relative;
 }
 
   
