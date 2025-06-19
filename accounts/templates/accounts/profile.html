@@ -1,0 +1,115 @@
+{% extends "main/base.html" %}
+{% load static %}
+{% block title %}Профиль | POLOS{% endblock %}
+{% block content %}
+<div class="login-container">
+  <div class="login-modal-win98">
+    <div class="login-header-win98">
+      <h3>Профиль пользователя</h3>
+    </div>
+    <div class="login-body-win98">
+      <form method="post" class="login-form-win98">
+        {% csrf_token %}
+        <div class="form-group-win98">
+          <label for="id_username">Имя пользователя:</label>
+          <input type="text" id="id_username" name="username" value="{{ user.username }}" disabled>
+        </div>
+        <div class="form-group-win98">
+          <label for="id_email">Email:</label>
+          <input type="email" id="id_email" name="email" value="{{ user.email }}">
+        </div>
+        <div class="form-group-win98">
+          <label for="id_first_name">Имя:</label>
+          <input type="text" id="id_first_name" name="first_name" value="{{ user.first_name }}">
+        </div>
+        <div class="form-group-win98">
+          <label for="id_last_name">Фамилия:</label>
+          <input type="text" id="id_last_name" name="last_name" value="{{ user.last_name }}">
+        </div>
+        <div class="form-group-win98">
+          <label>Адрес:</label>
+          <input type="text" id="id_address" name="address" placeholder="Введите адрес" autocomplete="street-address" autocorrect="off" autocapitalize="off" spellcheck="false">
+          <button type="button" class="btn-win98" onclick="findAddress()">Найти по геоданным</button>
+        </div>
+        <div class="form-group-win98">
+          <button type="button" class="btn-win98" onclick="togglePasswordForm()">Изменить пароль</button>
+        </div>
+        <div class="form-group-win98" id="password-change-block" style="display:none;">
+          <label>Смена пароля:</label>
+          {{ password_form.old_password.label_tag }} {{ password_form.old_password }}
+          {{ password_form.new_password1.label_tag }} {{ password_form.new_password1 }}
+          {{ password_form.new_password2.label_tag }} {{ password_form.new_password2 }}
+        </div>
+        <div class="login-actions-win98">
+          <button type="submit" class="btn-win98 login-btn-win98">Сохранить</button>
+        </div>
+      </form>
+      <div class="login-actions-win98" style="margin-top:20px;">
+        <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit" class="btn-win98">Выйти</button></form>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+function findAddress() {
+  if (!navigator.geolocation) {
+    alert('Ваш браузер не поддерживает геолокацию.');
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(function(position) {
+    const lat = position.coords.latitude;
+    const lon = position.coords.longitude;
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=ru`)
+      .then(r => r.json())
+      .then(data => {
+        if (data && data.address) {
+          const a = data.address;
+          let parts = [];
+          if (a.country) parts.push(a.country);
+          if (a.city) parts.push(a.city);
+          else if (a.town) parts.push(a.town);
+          else if (a.village) parts.push(a.village);
+          if (a.road) parts.push(a.road);
+          if (a.house_number) parts.push(a.house_number);
+          if (a.building) parts.push('корпус ' + a.building);
+          if (a.entrance) parts.push('подъезд ' + a.entrance);
+          if (a.flat || a.apartment) parts.push('квартира ' + (a.flat || a.apartment));
+          const addressStr = parts.join(', ');
+          document.getElementById('id_address').value = addressStr;
+          alert('Адрес определён: ' + addressStr);
+        } else {
+          alert('Не удалось определить адрес по координатам.');
+        }
+      })
+      .catch(() => alert('Ошибка при определении адреса.'));
+  }, function(error) {
+    if (error.code === error.PERMISSION_DENIED) {
+      alert('Вы не разрешили доступ к геолокации.');
+    } else {
+      alert('Ошибка при получении геолокации.');
+    }
+  });
+}
+
+// JS для смены пароля: поля disabled, если форма скрыта
+function togglePasswordForm() {
+  const block = document.getElementById('password-change-block');
+  const inputs = block.querySelectorAll('input');
+  if (block.style.display === 'none') {
+    block.style.display = 'block';
+    inputs.forEach(input => input.removeAttribute('disabled'));
+  } else {
+    block.style.display = 'none';
+    inputs.forEach(input => input.setAttribute('disabled', 'disabled'));
+  }
+}
+// При загрузке страницы делаем поля смены пароля disabled
+window.addEventListener('DOMContentLoaded', function() {
+  const block = document.getElementById('password-change-block');
+  if (block) {
+    const inputs = block.querySelectorAll('input');
+    inputs.forEach(input => input.setAttribute('disabled', 'disabled'));
+  }
+});
+</script>
+{% endblock %} 

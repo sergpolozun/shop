@@ -14,16 +14,13 @@
   <div class="shop-nav">
     <div class="shop-nav-left">
       <button class="btn-win98" onclick="window.location.href='{% url 'shop:product_list' %}'">В магазин</button>
-      <button class="btn-win98" onclick="openFilter()">Фильтрация</button>
     </div>
-    
     <div class="shop-nav-center">
       {% if page_obj.has_other_pages %}
         <div class="pagination-controls">
           {% if page_obj.has_previous %}
             <button class="btn-win98" onclick="goToPage({{ page_obj.previous_page_number }})">←</button>
           {% endif %}
-          
           {% for num in page_obj.paginator.page_range %}
             {% if page_obj.number == num %}
               <button class="btn-win98 current-page" onclick="goToPage({{ num }})">{{ num }}</button>
@@ -31,25 +28,21 @@
               <button class="btn-win98" onclick="goToPage({{ num }})">{{ num }}</button>
             {% endif %}
           {% endfor %}
-          
           {% if page_obj.has_next %}
             <button class="btn-win98" onclick="goToPage({{ page_obj.next_page_number }})">→</button>
           {% endif %}
         </div>
       {% endif %}
     </div>
-    
     <div class="shop-nav-right">
       {% if user.is_authenticated %}
-        <form method="post" action="{% url 'logout' %}" style="display:inline;">
-          {% csrf_token %}
-          <button type="submit" class="btn-win98">Выйти</button>
-        </form>
+        <button class="btn-win98" onclick="window.location.href='{% url 'profile' %}'">Профиль</button>
       {% else %}
         <button class="btn-win98" onclick="window.location.href='{% url 'login' %}'">Войти</button>
       {% endif %}
       <button class="btn-win98" onclick="window.location.href='{% url 'shop:favorite_list' %}'">Избранное</button>
       <button class="btn-win98" onclick="window.location.href='{% url 'shop:cart' %}'">Корзина</button>
+      <button class="btn-win98" onclick="openOrdersModal()">Заказы</button>
     </div>
   </div>
 
@@ -160,8 +153,50 @@
         </div>
     </div>
 </div>
+
+<!-- Модальное окно заказов -->
+<div id="ordersModal" class="modal-win98">
+  <div class="modal-content-win98">
+    <div class="modal-header-win98">
+      <h3>Заказы</h3>
+      <button class="close-btn-win98" onclick="closeOrdersModal()">×</button>
+    </div>
+    <div class="modal-body-win98" style="text-align:center;">
+      <div style="padding: 40px 20px;">
+        <h4 style="color: #000080; margin-bottom: 20px;">Система заказов</h4>
+        <p style="font-size: 16px; line-height: 1.5; color: #000;">
+          Функция заказов будет реализована в ближайшее время.<br>
+          Следите за обновлениями!
+        </p>
+        <div style="margin-top: 30px;">
+          <button class="btn-win98" onclick="closeOrdersModal()">Понятно</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Модальное окно подтверждения выхода -->
+<div id="logoutModal" class="modal-win98">
+  <div class="modal-content-win98">
+    <div class="modal-header-win98">
+      <h3>Подтверждение выхода</h3>
+      <button class="close-btn-win98" onclick="closeLogoutModal()">×</button>
+    </div>
+    <div class="modal-body-win98" style="text-align:center;">
+      <p>Вы действительно хотите выйти из аккаунта?</p>
+      <form method="post" action="{% url 'logout' %}" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="btn-win98">Да, выйти</button>
+      </form>
+      <button class="btn-win98" onclick="closeLogoutModal()">Отмена</button>
+    </div>
+  </div>
+</div>
+
 {% endblock %}
 {% block extra_js %}
 <script src="{% static 'js/list.js' %}"></script>
 <script src="{% static 'js/cart.js' %}"></script>
+<script src="{% static 'js/logout.js' %}"></script>
 {% endblock %} 
