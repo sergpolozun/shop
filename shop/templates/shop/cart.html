@@ -14,6 +14,7 @@
       <a href="{% url 'shop:product_list' %}" class="btn-win98">В магазин</a>
     </div>
     <div class="shop-nav-right">
+      <button class="btn-win98" onclick="window.location.href='{% url 'shop:favorite_list' %}'">Избранное</button>
       <button class="btn-win98" onclick="openClearCartModal()">Очистить корзину</button>
     </div>
   </div>

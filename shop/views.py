@@ -66,8 +66,8 @@ def product_list(request):
     
     # Сортировка
     if sort_by == 'popularity':
-        products = products.annotate(view_count=Count('views')).order_by(
-            '-view_count' if order == 'desc' else 'view_count'
+        products = products.order_by(
+            '-views_count' if order == 'desc' else 'views_count'
         )
     elif sort_by == 'price':
         products = products.order_by(
@@ -119,11 +119,16 @@ def product_detail(request, pk):
     
     # Отслеживаем просмотр
     ip_address = get_client_ip(request)
-    ProductView.objects.get_or_create(
+    view_created = ProductView.objects.get_or_create(
         product=product,
         ip_address=ip_address,
         defaults={'viewed_at': timezone.now()}
-    )
+    )[1]  # get_or_create возвращает (object, created)
+    
+    # Увеличиваем счетчик просмотров только если это новый просмотр
+    if view_created:
+        product.views_count += 1
+        product.save(update_fields=['views_count'])
     
     # Получаем связанные товары
     related_products = Product.objects.filter(
@@ -142,11 +147,16 @@ def product_detail_json(request, pk):
     
     # Отслеживаем просмотр
     ip_address = get_client_ip(request)
-    ProductView.objects.get_or_create(
+    view_created = ProductView.objects.get_or_create(
         product=product,
         ip_address=ip_address,
         defaults={'viewed_at': timezone.now()}
-    )
+    )[1]  # get_or_create возвращает (object, created)
+    
+    # Увеличиваем счетчик просмотров только если это новый просмотр
+    if view_created:
+        product.views_count += 1
+        product.save(update_fields=['views_count'])
     
     # Проверяем, есть ли товар в корзине
     cart_quantity = 0

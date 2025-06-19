@@ -72,6 +72,7 @@ class Product(models.Model):
     updated = models.DateTimeField(auto_now=True)
     discount = models.DecimalField(default=0.00, max_digits=4, decimal_places=2)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='std')
+    views_count = models.PositiveIntegerField(default=0, verbose_name='Количество просмотров')
     
     # ManyToManyField с параметром through
     tags = models.ManyToManyField(Tag, through=ProductTag, related_name='products')

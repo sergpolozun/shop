@@ -14,44 +14,42 @@
   <div class="shop-nav">
     <div class="shop-nav-left">
       <button class="btn-win98" onclick="window.location.href='{% url 'shop:product_list' %}'">В магазин</button>
+      <button class="btn-win98" onclick="openFilter()">Фильтрация</button>
     </div>
     
     <div class="shop-nav-center">
       {% if page_obj.has_other_pages %}
-        <div class="pagination-info">
-          <span>Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
-          <div class="pagination-controls">
-            {% if page_obj.has_previous %}
-              <button class="btn-win98" onclick="goToPage({{ page_obj.previous_page_number }})">←</button>
+        <div class="pagination-controls">
+          {% if page_obj.has_previous %}
+            <button class="btn-win98" onclick="goToPage({{ page_obj.previous_page_number }})">←</button>
+          {% endif %}
+          
+          {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+              <button class="btn-win98 current-page" onclick="goToPage({{ num }})">{{ num }}</button>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+              <button class="btn-win98" onclick="goToPage({{ num }})">{{ num }}</button>
             {% endif %}
-            
-            {% for num in page_obj.paginator.page_range %}
-              {% if page_obj.number == num %}
-                <span class="current-page">{{ num }}</span>
-              {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                <button class="btn-win98" onclick="goToPage({{ num }})">{{ num }}</button>
-              {% endif %}
-            {% endfor %}
-            
-            {% if page_obj.has_next %}
-              <button class="btn-win98" onclick="goToPage({{ page_obj.next_page_number }})">→</button>
-            {% endif %}
-          </div>
+          {% endfor %}
+          
+          {% if page_obj.has_next %}
+            <button class="btn-win98" onclick="goToPage({{ page_obj.next_page_number }})">→</button>
+          {% endif %}
         </div>
       {% endif %}
     </div>
     
     <div class="shop-nav-right">
-      <button class="btn-win98" onclick="window.location.href='{% url 'shop:favorite_list' %}'">Избранное</button>
       {% if user.is_authenticated %}
         <form method="post" action="{% url 'logout' %}" style="display:inline;">
           {% csrf_token %}
           <button type="submit" class="btn-win98">Выйти</button>
         </form>
-        <button class="btn-win98" onclick="window.location.href='{% url 'shop:cart' %}'">Корзина</button>
       {% else %}
         <button class="btn-win98" onclick="window.location.href='{% url 'login' %}'">Войти</button>
       {% endif %}
+      <button class="btn-win98" onclick="window.location.href='{% url 'shop:favorite_list' %}'">Избранное</button>
+      <button class="btn-win98" onclick="window.location.href='{% url 'shop:cart' %}'">Корзина</button>
     </div>
   </div>
 
@@ -99,6 +97,66 @@
         </div>
         <div class="modal-body-win98" id="modalBody">
             <!-- Контент будет загружен через AJAX -->
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно фильтрации -->
+<div id="filterModal" class="modal-win98">
+    <div class="modal-content-win98">
+        <div class="modal-header-win98">
+            <h3>Фильтрация товаров</h3>
+            <button class="close-btn-win98" onclick="closeFilter()">×</button>
+        </div>
+        <div class="modal-body-win98">
+            <form id="filterForm">
+                <div class="filter-section">
+                    <h4>Сортировка по:</h4>
+                    <div class="radio-group">
+                        <label class="radio-item">
+                            <input type="radio" name="sort" value="popularity" {% if current_sort == 'popularity' %}checked{% endif %}>
+                            <span class="radio-custom"></span>
+                            Популярности
+                        </label>
+                        <label class="radio-item">
+                            <input type="radio" name="sort" value="price" {% if current_sort == 'price' %}checked{% endif %}>
+                            <span class="radio-custom"></span>
+                            Цене
+                        </label>
+                        <label class="radio-item">
+                            <input type="radio" name="sort" value="date" {% if current_sort == 'date' %}checked{% endif %}>
+                            <span class="radio-custom"></span>
+                            Дате
+                        </label>
+                        <label class="radio-item">
+                            <input type="radio" name="sort" value="name" {% if current_sort == 'name' %}checked{% endif %}>
+                            <span class="radio-custom"></span>
+                            Названию
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="filter-section">
+                    <h4>Порядок сортировки:</h4>
+                    <div class="radio-group">
+                        <label class="radio-item">
+                            <input type="radio" name="order" value="desc" {% if current_order == 'desc' %}checked{% endif %}>
+                            <span class="radio-custom"></span>
+                            Убывание
+                        </label>
+                        <label class="radio-item">
+                            <input type="radio" name="order" value="asc" {% if current_order == 'asc' %}checked{% endif %}>
+                            <span class="radio-custom"></span>
+                            Возрастание
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="filter-buttons">
+                    <button type="submit" class="btn-win98">Применить</button>
+                    <button type="button" class="btn-win98" onclick="resetFilter()">Сбросить</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

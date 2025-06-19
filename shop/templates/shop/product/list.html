@@ -19,40 +19,37 @@
     
     <div class="shop-nav-center">
       {% if page_obj.has_other_pages %}
-        <div class="pagination-info">
-          <span>Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
-          <div class="pagination-controls">
-            {% if page_obj.has_previous %}
-              <button class="btn-win98" onclick="goToPage({{ page_obj.previous_page_number }})">←</button>
+        <div class="pagination-controls">
+          {% if page_obj.has_previous %}
+            <button class="btn-win98" onclick="goToPage({{ page_obj.previous_page_number }})">←</button>
+          {% endif %}
+          
+          {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+              <button class="btn-win98 current-page" onclick="goToPage({{ num }})">{{ num }}</button>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+              <button class="btn-win98" onclick="goToPage({{ num }})">{{ num }}</button>
             {% endif %}
-            
-            {% for num in page_obj.paginator.page_range %}
-              {% if page_obj.number == num %}
-                <span class="current-page">{{ num }}</span>
-              {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                <button class="btn-win98" onclick="goToPage({{ num }})">{{ num }}</button>
-              {% endif %}
-            {% endfor %}
-            
-            {% if page_obj.has_next %}
-              <button class="btn-win98" onclick="goToPage({{ page_obj.next_page_number }})">→</button>
-            {% endif %}
-          </div>
+          {% endfor %}
+          
+          {% if page_obj.has_next %}
+            <button class="btn-win98" onclick="goToPage({{ page_obj.next_page_number }})">→</button>
+          {% endif %}
         </div>
       {% endif %}
     </div>
     
     <div class="shop-nav-right">
-      <button class="btn-win98" onclick="window.location.href='{% url 'shop:favorite_list' %}'">Избранное</button>
-  {% if user.is_authenticated %}
-      <form method="post" action="{% url 'logout' %}" style="display:inline;">
-        {% csrf_token %}
+      {% if user.is_authenticated %}
+        <form method="post" action="{% url 'logout' %}" style="display:inline;">
+          {% csrf_token %}
           <button type="submit" class="btn-win98">Выйти</button>
-      </form>
-        <button class="btn-win98" onclick="window.location.href='{% url 'shop:cart' %}'">Корзина</button>
-  {% else %}
+        </form>
+      {% else %}
         <button class="btn-win98" onclick="window.location.href='{% url 'login' %}'">Войти</button>
-  {% endif %}
+      {% endif %}
+      <button class="btn-win98" onclick="window.location.href='{% url 'shop:favorite_list' %}'">Избранное</button>
+      <button class="btn-win98" onclick="window.location.href='{% url 'shop:cart' %}'">Корзина</button>
     </div>
   </div>
 
