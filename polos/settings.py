@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-%c6ywnzn$j5(s&!ls*wtz-0tco$ypa+od@+^b1tiy$(5n3$umn
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS: list[str] = []
 
 
 # Application definition
@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'main',
     'shop',
     'accounts',
+    'minesweeper',
 ]
 
 MIDDLEWARE = [
@@ -122,6 +123,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     BASE_DIR / 'main' / 'static',
+    BASE_DIR / 'minesweeper' / 'static',
 ]
 
 # Default primary key field type

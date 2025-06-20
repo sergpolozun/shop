@@ -28,6 +28,7 @@ urlpatterns = [
     path('accounts/', include('django.contrib.auth.urls')),
     path('accounts/', include('accounts.urls')),
     path('__debug__/', include('debug_toolbar.urls')),
+    path('minesweeper/', include('minesweeper.urls')),
 ]
 
 if settings.DEBUG:

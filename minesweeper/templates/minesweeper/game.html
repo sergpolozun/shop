@@ -1,0 +1,46 @@
+{% extends 'main/base.html' %}
+{% load static %}
+{% block title %}Сапёр | POLOS{% endblock %}
+{% block content %}
+<div class="minesweeper-container">
+    <h1>Сапёр</h1>
+    <div class="ms-controls">
+        <form id="ms-settings">
+            <button type="button" class="btn-win98" id="open-difficulty">Новая игра</button>
+            <span class="ms-info">
+                Мины: <span id="ms-mines">0</span> | Время: <span id="ms-timer">0</span>
+            </span>
+        </form>
+    </div>
+    <div id="ms-board"></div>
+</div>
+<!-- Модальное окно победы/поражения -->
+<div id="ms-modal" class="modal-win98" style="display:none;">
+    <div class="modal-content-win98">
+        <div class="modal-header-win98">
+            <span class="modal-titlebar-icon">🕹️</span>
+            <h3 id="ms-modal-title"></h3>
+            <button class="close-btn-win98" onclick="closeMsModal()">×</button>
+        </div>
+        <div class="modal-body-win98" id="ms-modal-body"></div>
+        <div style="text-align:center; margin: 10px 0 5px 0;">
+            <button class="btn-win98" onclick="startNewGame()">Новая игра</button>
+        </div>
+    </div>
+</div>
+<!-- Модальное окно выбора сложности -->
+<div id="difficulty-modal" style="display:none;">
+    <div class="modal-content-win98">
+        <h3>Выберите сложность</h3>
+        <button class="difficulty-btn" data-w="9" data-h="9" data-m="10" data-t="60">9x9 (10 мин, 1 минута)</button>
+        <button class="difficulty-btn" data-w="16" data-h="16" data-m="40" data-t="180">16x16 (40 мин, 3 минуты)</button>
+        <button class="difficulty-btn" data-w="30" data-h="16" data-m="99" data-t="420">30x16 (99 мин, 7 минут)</button>
+    </div>
+</div>
+{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'minesweeper/css/minesweeper.css' %}">
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'minesweeper/js/minesweeper.js' %}"></script>
+{% endblock %} 

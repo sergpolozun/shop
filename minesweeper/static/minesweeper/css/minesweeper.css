@@ -1,0 +1,219 @@
+/* Сетка поля */
+#ms-board {
+    display: grid;
+    gap: 2px;
+    background: #bdbdbd;
+    border: 2px solid #808080;
+    margin: 20px 0 10px 0;
+    box-shadow: 2px 2px 0 #fff, 4px 4px 0 #808080;
+    padding: 4px;
+    width: max-content;
+    min-width: 288px;
+    min-height: 288px;
+}
+
+.ms-cell {
+    width: 32px;
+    height: 32px;
+    background: #e0e0e0;
+    border: 2px solid #fff;
+    border-bottom: 2px solid #808080;
+    border-right: 2px solid #808080;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 18px;
+    color: #222;
+    text-align: center;
+    line-height: 32px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.1s;
+}
+.ms-cell.open {
+    background: #d0d0d0;
+    border: 2px solid #bdbdbd;
+    color: #222;
+    animation: cellOpen 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+@keyframes cellOpen {
+    0% { transform: scale(0.7); background: #fffbe7; }
+    100% { transform: scale(1); background: #d0d0d0; }
+}
+.ms-cell.mine {
+    background: #f44336;
+    color: #fff;
+    animation: mineAppear 0.3s;
+}
+@keyframes mineAppear {
+    0% { transform: scale(0.5); background: #fff; }
+    100% { transform: scale(1); background: #f44336; }
+}
+.ms-cell.flag {
+    background: #ffe082;
+    color: #d32f2f;
+    animation: flagAppear 0.2s;
+}
+@keyframes flagAppear {
+    0% { transform: scale(0.5) rotate(-30deg); opacity: 0; }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+.ms-cell:hover {
+    background: #c8e6c9;
+}
+
+.minesweeper-container {
+    max-width: 600px;
+    margin: 0 auto;
+    background: #c0c0c0;
+    border: 3px solid #808080;
+    box-shadow: 4px 4px 0 #fff, 8px 8px 0 #808080;
+    padding: 20px 30px 30px 30px;
+    border-radius: 8px;
+}
+.ms-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+.ms-info {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 14px;
+    background: #e0e0e0;
+    border: 2px solid #808080;
+    padding: 4px 10px;
+    border-radius: 4px;
+}
+.btn-win98 {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 14px;
+    background: #e0e0e0;
+    border: 2px solid #808080;
+    box-shadow: 2px 2px 0 #fff, 4px 4px 0 #808080;
+    padding: 4px 12px;
+    cursor: pointer;
+    margin-left: 10px;
+    border-radius: 4px;
+    transition: background 0.1s;
+}
+.btn-win98:hover {
+    background: #bdbdbd;
+}
+.modal-win98 {
+    position: fixed;
+    left: 0; top: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.2);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: modalFadeIn 0.3s;
+}
+@keyframes modalFadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+.modal-content-win98 {
+    background: #fff;
+    border: 2px solid #000;
+    box-shadow: none;
+    width: 400px;
+    max-width: 90%;
+    max-height: 80%;
+    overflow-y: auto;
+    font-family: "Pixelated MS Sans Serif", sans-serif;
+    border-radius: 0;
+    padding: 0;
+}
+.modal-header-win98 {
+    background: #000080;
+    color: white;
+    padding: 8px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #000;
+    font-family: "Pixelated MS Sans Serif", sans-serif;
+}
+.modal-header-win98 h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: bold;
+    flex: 1;
+    text-align: center;
+    letter-spacing: 1px;
+}
+.modal-titlebar-icon {
+    font-size: 18px;
+    margin-right: 8px;
+}
+.close-btn-win98 {
+    background: #c0c0c0;
+    border: 2px outset #fff;
+    color: #000;
+    font-size: 16px;
+    font-weight: bold;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 8px;
+    transition: background 0.1s, color 0.1s;
+}
+.close-btn-win98:hover {
+    background: #ff0000;
+    color: #fff;
+}
+.modal-body-win98 {
+    padding: 16px;
+    background: #fff;
+    color: black;
+    border: none;
+}
+
+/* Курсор для всего, кроме input/select */
+body, .ms-cell, .btn-win98, #ms-board {
+    cursor: url('/static/cursors/custom.cur'), auto;
+}
+input, select, option, textarea {
+    cursor: auto !important;
+}
+
+/* Модальное окно выбора сложности */
+#difficulty-modal {
+    position: fixed;
+    left: 0; top: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.2);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: modalFadeIn 0.3s;
+}
+#difficulty-modal .modal-content-win98 {
+    background: #c0c0c0;
+    border: 3px solid #808080;
+    box-shadow: 4px 4px 0 #fff, 8px 8px 0 #808080;
+    min-width: 320px;
+    text-align: center;
+    border-radius: 8px;
+    padding: 20px 30px;
+}
+#difficulty-modal .difficulty-btn {
+    display: block;
+    width: 100%;
+    margin: 10px 0;
+    font-size: 16px;
+    padding: 10px 0;
+    background: #e0e0e0;
+    border: 2px solid #808080;
+    border-radius: 4px;
+    font-family: 'Press Start 2P', monospace;
+    cursor: pointer;
+    transition: background 0.1s;
+}
+#difficulty-modal .difficulty-btn:hover {
+    background: #bdbdbd;
+} 
