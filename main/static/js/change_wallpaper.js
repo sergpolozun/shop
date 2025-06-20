@@ -1,4 +1,5 @@
-const wallpapers = [
+document.addEventListener('DOMContentLoaded', function() {
+  const wallpapers = [
     '/static/wallpapers/wallpaper1.jpg',
     '/static/wallpapers/wallpaper2.jpg',
     '/static/wallpapers/wallpaper3.jpg',
@@ -11,23 +12,29 @@ const wallpapers = [
   const layer1 = document.querySelector('.wallpaper1');
   const layer2 = document.querySelector('.wallpaper2');
   
-  layer1.style.backgroundImage = `url('${wallpapers[0]}')`;
-  layer1.classList.add('visible');
-  
-  document.getElementById('changeWallpaperBtn').addEventListener('click', () => {
-    currentWallpaper = (currentWallpaper + 1) % wallpapers.length;
-    const nextImage = `url('${wallpapers[currentWallpaper]}')`;
-  
-    if (showingFirst) {
-      layer2.style.backgroundImage = nextImage;
-      layer2.classList.add('visible');
-      layer1.classList.remove('visible');
-    } else {
-      layer1.style.backgroundImage = nextImage;
-      layer1.classList.add('visible');
-      layer2.classList.remove('visible');
+  if (layer1 && layer2) {
+    layer1.style.backgroundImage = `url('${wallpapers[0]}')`;
+    layer1.classList.add('visible');
+    
+    const changeWallpaperBtn = document.getElementById('changeWallpaperBtn');
+    if (changeWallpaperBtn) {
+      changeWallpaperBtn.addEventListener('click', () => {
+        currentWallpaper = (currentWallpaper + 1) % wallpapers.length;
+        const nextImage = `url('${wallpapers[currentWallpaper]}')`;
+      
+        if (showingFirst) {
+          layer2.style.backgroundImage = nextImage;
+          layer2.classList.add('visible');
+          layer1.classList.remove('visible');
+        } else {
+          layer1.style.backgroundImage = nextImage;
+          layer1.classList.add('visible');
+          layer2.classList.remove('visible');
+        }
+      
+        showingFirst = !showingFirst;
+      });
     }
-  
-    showingFirst = !showingFirst;
-  });
+  }
+});
   

@@ -34,9 +34,13 @@ function makeDraggable(elem) {
   
   // Применим к окнам и ярлыкам
   window.onload = () => {
+    // Применяем drag-and-drop к старым окнам win95-window (для совместимости)
     document.querySelectorAll('.win95-window, .icon').forEach(el => {
       el.style.position = 'absolute'; // для ярлыков
       makeDraggable(el);
     });
+    
+    // НЕ применяем drag-and-drop к модальным окнам modal-win98 на главной странице
+    // Они должны оставаться по центру и не перемещаться
   };
   

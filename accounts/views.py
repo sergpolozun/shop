@@ -44,11 +44,20 @@ class CustomLoginView(LoginView):
 def profile(request):
     user = request.user
     password_changed = False
+    # Создаём профиль, если его нет
+    try:
+        profile = user.profile
+    except Exception:
+        from .models import Profile
+        profile = Profile.objects.create(user=user)
     if request.method == 'POST':
         user.email = request.POST.get('email', user.email)
         user.first_name = request.POST.get('first_name', user.first_name)
         user.last_name = request.POST.get('last_name', user.last_name)
         user.save()
+        # Сохраняем адрес
+        profile.address = request.POST.get('address', profile.address)
+        profile.save()
         # обработка смены пароля только если хотя бы одно поле заполнено
         if request.POST.get('old_password') or request.POST.get('new_password1') or request.POST.get('new_password2'):
             password_form = PasswordChangeForm(user, request.POST)
@@ -64,6 +73,7 @@ def profile(request):
         password_form = PasswordChangeForm(user)
     return render(request, 'accounts/profile.html', {
         'user': user,
+        'profile': profile,
         'password_form': password_form,
         'password_changed': password_changed,
     })

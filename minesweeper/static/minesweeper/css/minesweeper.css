@@ -61,7 +61,9 @@
 }
 
 .minesweeper-container {
-    max-width: 600px;
+    width: fit-content;
+    min-width: 320px;
+    max-width: none;
     margin: 0 auto;
     background: #c0c0c0;
     border: 3px solid #808080;

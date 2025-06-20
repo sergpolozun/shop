@@ -9,23 +9,23 @@
   <div class="wallpaper-layer wallpaper2"></div>
 
   <!-- Магазин по центру -->
-  <div id="shopIcon" class="icon big-icon" ondblclick="openWindow('shopWindow')">
+  <div id="shopIcon" class="icon big-icon" ondblclick="openModal('shopModal')">
     <img src="{% static 'icons/shop.png' %}" alt="Магазин" />
     <span>Магазин</span>
   </div>
 
   <!-- Другие иконки по углам -->
-  <div class="icon corner-icon top-left" ondblclick="openWindow('terminalWindow')">
+  <div class="icon corner-icon top-left" ondblclick="openModal('terminalModal')">
     <img src="{% static 'icons/terminal.png' %}" alt="Терминал" />
     <span>Терминал</span>
   </div>
 
-  <div class="icon corner-icon top-right" ondblclick="openWindow('paintWindow')">
+  <div class="icon corner-icon top-right" ondblclick="openModal('paintModal')">
     <img src="{% static 'icons/paint.png' %}" alt="Пейнт" />
     <span>Пейнт</span>
   </div>
 
-  <div class="icon corner-icon bottom-left" ondblclick="openWindow('wallpaperWindow')">
+  <div class="icon corner-icon bottom-left" ondblclick="openModal('wallpaperModal')">
     <img src="{% static 'icons/wallpaper.png' %}" alt="Обои" />
     <span>Обои</span>
   </div>
@@ -35,55 +35,80 @@
     <span>Сапёр</span>
   </div>
 
-  <!-- Окна -->
-  <div id="shopWindow" class="win95-window">
-    <div class="win95-titlebar">
-      <span>Магазин</span>
-      <button onclick="closeWindow('shopWindow')">✕</button>
-    </div>
-    <div class="win95-content">
-      <a href="/shop">Перейти в магазин</a>
-    </div>
-  </div>
-
-  <div id="terminalWindow" class="win95-window">
-    <div class="win95-titlebar">
-      <span>Терминал</span>
-      <button onclick="closeWindow('terminalWindow')">✕</button>
-    </div>
-    <div class="win95-content">
-      <p>Магазин POLOS — ваш портал в мир ретро-стиля и современного функционала. Здесь вы найдёте всё необходимое для создания атмосферы старой доброй операционной системы, с удобным доступом и актуальными товарами.</p>
+  <!-- Модальные окна в стиле Windows 98 -->
+  <div id="shopModal" class="modal-win98">
+    <div class="modal-content-win98">
+      <div class="modal-header-win98">
+        <h3>Магазин</h3>
+        <button class="close-btn-win98" onclick="closeModal('shopModal')">×</button>
+      </div>
+      <div class="modal-body-win98">
+        <p>Добро пожаловать в магазин POLOS!</p>
+        <div style="text-align: center; margin-top: 20px;">
+          <a href="/shop" class="btn-win98">Перейти в магазин</a>
+        </div>
+      </div>
     </div>
   </div>
 
-  <div id="paintWindow" class="win95-window">
-    <div class="win95-titlebar">
-      <span>Пейнт</span>
-      <button onclick="closeWindow('paintWindow')">✕</button>
+  <div id="terminalModal" class="modal-win98">
+    <div class="modal-content-win98">
+      <div class="modal-header-win98">
+        <h3>Терминал</h3>
+        <button class="close-btn-win98" onclick="closeModal('terminalModal')">×</button>
+      </div>
+      <div class="modal-body-win98">
+        <p>Магазин POLOS — ваш портал в мир ретро-стиля и современного функционала.</p>
+        <div style="text-align: center; margin-top: 20px;">
+          <button class="btn-win98" onclick="closeModal('terminalModal')">Понятно</button>
+        </div>
+      </div>
     </div>
-    <div class="win95-content">
-      <p>Пейнт пока не доступен.</p>
+  </div>
+
+  <div id="paintModal" class="modal-win98">
+    <div class="modal-content-win98">
+      <div class="modal-header-win98">
+        <h3>Пейнт</h3>
+        <button class="close-btn-win98" onclick="closeModal('paintModal')">×</button>
+      </div>
+      <div class="modal-body-win98">
+        <p>Пейнт пока не доступен.</p>
+        <p>Эта функция будет добавлена в ближайших обновлениях.</p>
+        <div style="text-align: center; margin-top: 20px;">
+          <button class="btn-win98" onclick="closeModal('paintModal')">Понятно</button>
+        </div>
+      </div>
     </div>
   </div>
   
-  <div class="win95-window" id="wallpaperWindow">
-    <div class="win95-titlebar">
-      <span>Обои</span>
-      <button onclick="closeWindow('wallpaperWindow')">X</button>
-    </div>
-    <div class="win95-content">
-      <p>Здесь можно сменить обои рабочего стола:</p>
-      <button id="changeWallpaperBtn" class="start-button">Сменить обои</button>
+  <div id="wallpaperModal" class="modal-win98">
+    <div class="modal-content-win98">
+      <div class="modal-header-win98">
+        <h3>Обои</h3>
+        <button class="close-btn-win98" onclick="closeModal('wallpaperModal')">×</button>
+      </div>
+      <div class="modal-body-win98">
+        <p>Здесь можно сменить обои рабочего стола:</p>
+        <div style="text-align: center; margin-top: 20px;">
+          <button id="changeWallpaperBtn" class="btn-win98">Сменить обои</button>
+        </div>
+      </div>
     </div>
   </div>
   
-  <div id="sapperWindow" class="win95-window">
-    <div class="win95-titlebar">
-      <span>Сапёр</span>
-      <button onclick="closeWindow('sapperWindow')">✕</button>
-    </div>
-    <div class="win95-content">
-      <p>Сапёр скоро будет доступен.</p>
+  <div id="sapperModal" class="modal-win98">
+    <div class="modal-content-win98">
+      <div class="modal-header-win98">
+        <h3>Сапёр</h3>
+        <button class="close-btn-win98" onclick="closeModal('sapperModal')">×</button>
+      </div>
+      <div class="modal-body-win98">
+        <p>Классическая игра "Сапёр" в стиле Windows 98.</p>
+        <div style="text-align: center; margin-top: 20px;">
+          <button class="btn-win98" onclick="closeModal('sapperModal')">Понятно</button>
+        </div>
+      </div>
     </div>
   </div>
 
