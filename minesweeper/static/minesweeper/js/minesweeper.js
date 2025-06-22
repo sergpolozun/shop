@@ -92,9 +92,14 @@ function openCell(x, y) {
     }
     if (opened === width * height - mines) {
         gameOver = true;
-        showModal('Победа', 'Вы успешно разминировали поле!');
         stopTimer();
         revealMines(true);
+        // Проверка на промокод
+        if (width === 30 && height === 16 && mines === 99 && timer > 0) {
+            showModal('Победа', `<div style='margin-bottom:10px;'>Поздравляем! Вы прошли сложный режим 30x16 менее чем за 7 минут!<br><br><b>Ваш промокод:</b> <span id='promo-code' style='font-size:18px;color:#008800;'>POLO10</span> <button class='btn-win98' style='padding:2px 8px;font-size:13px;' onclick='copyPromoCode()'>Копировать</button><br><span style='font-size:13px;color:#555;'>Используйте его в магазине для получения скидки.</span></div>`);
+        } else {
+            showModal('Победа', 'Вы успешно разминировали поле!');
+        }
     }
 }
 
@@ -197,6 +202,26 @@ function openDifficultyModal() {
 }
 function closeDifficultyModal() {
     $("difficulty-modal").style.display = 'none';
+}
+
+function copyPromoCode() {
+    const code = 'POLO10';
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(code);
+    } else {
+        // fallback для старых браузеров
+        const temp = document.createElement('input');
+        temp.value = code;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand('copy');
+        document.body.removeChild(temp);
+    }
+    const btn = document.activeElement;
+    if (btn && btn.tagName === 'BUTTON') {
+        btn.textContent = 'Скопировано!';
+        setTimeout(() => { btn.textContent = 'Копировать'; }, 1500);
+    }
 }
 
 // --- UI ---

@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'shop',
     'accounts',
     'minesweeper',
+    'paint',
 ]
 
 MIDDLEWARE = [
@@ -124,6 +125,7 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     BASE_DIR / 'main' / 'static',
     BASE_DIR / 'minesweeper' / 'static',
+    BASE_DIR / 'paint' / 'static',
 ]
 
 # Default primary key field type

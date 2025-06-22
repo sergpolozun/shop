@@ -15,7 +15,7 @@
   </div>
 
   <!-- Другие иконки по углам -->
-  <div class="icon corner-icon top-left" ondblclick="openModal('terminalModal')">
+  <div class="icon corner-icon top-left" ondblclick="openTerminal()">
     <img src="{% static 'icons/terminal.png' %}" alt="Терминал" />
     <span>Терминал</span>
   </div>
@@ -51,16 +51,20 @@
     </div>
   </div>
 
+  <!-- Терминал -->
   <div id="terminalModal" class="modal-win98">
     <div class="modal-content-win98">
       <div class="modal-header-win98">
-        <h3>Терминал</h3>
+        <h3>POLOS Terminal v1.0.0</h3>
         <button class="close-btn-win98" onclick="closeModal('terminalModal')">×</button>
       </div>
       <div class="modal-body-win98">
-        <p>Магазин POLOS — ваш портал в мир ретро-стиля и современного функционала.</p>
-        <div style="text-align: center; margin-top: 20px;">
-          <button class="btn-win98" onclick="closeModal('terminalModal')">Понятно</button>
+        <div class="terminal-container">
+          <div id="terminalOutput" class="terminal-output"></div>
+          <div class="terminal-input-container">
+            <span class="terminal-prompt">user@polos:/home/user$</span>
+            <input type="text" id="terminalInput" class="terminal-input" placeholder="Введите команду..." autocomplete="off">
+          </div>
         </div>
       </div>
     </div>
@@ -73,10 +77,9 @@
         <button class="close-btn-win98" onclick="closeModal('paintModal')">×</button>
       </div>
       <div class="modal-body-win98">
-        <p>Пейнт пока не доступен.</p>
-        <p>Эта функция будет добавлена в ближайших обновлениях.</p>
+        <p>Графический редактор для создания пиксель-арт!</p>
         <div style="text-align: center; margin-top: 20px;">
-          <button class="btn-win98" onclick="closeModal('paintModal')">Понятно</button>
+          <a href="/paint/" class="btn-win98">Открыть редактор</a>
         </div>
       </div>
     </div>
@@ -117,4 +120,5 @@
 <script src="{% static 'js/desktop.js' %}"></script>
 <script src="{% static 'js/d-n-d.js' %}"></script>
 <script src="{% static 'js/change_wallpaper.js' %}"></script>
+<script src="{% static 'js/terminal.js' %}"></script>
 {% endblock %}

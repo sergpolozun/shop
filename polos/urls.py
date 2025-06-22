@@ -29,6 +29,7 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),
     path('__debug__/', include('debug_toolbar.urls')),
     path('minesweeper/', include('minesweeper.urls')),
+    path('paint/', include('paint.urls')),
 ]
 
 if settings.DEBUG:

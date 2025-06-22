@@ -1,0 +1,68 @@
+{% extends 'main/base.html' %}
+{% load static %}
+{% block title %}Пейнт | POLOS{% endblock %}
+{% block content %}
+<div class="paint-container">
+    <h1>Пейнт</h1>
+    
+    <div class="paint-controls">
+        <div class="tool-panel">
+            <button type="button" class="btn-win98 tool-btn active" id="pencil-tool" title="Карандаш">
+                ✏️ Карандаш
+            </button>
+            <button type="button" class="btn-win98 tool-btn" id="eraser-tool" title="Ластик">
+                🧽 Ластик
+            </button>
+            <button type="button" class="btn-win98 tool-btn" id="fill-tool" title="Заливка">
+                🎨 Заливка
+            </button>
+            <button type="button" class="btn-win98" id="clear-canvas" title="Очистить">
+                🗑️ Очистить
+            </button>
+        </div>
+        
+        <div class="color-panel">
+            <span class="color-label">Цвет:</span>
+            <div class="color-palette">
+                <div class="color-swatch active" data-color="#000000" style="background: #000000;"></div>
+                <div class="color-swatch" data-color="#ffffff" style="background: #ffffff; border: 1px solid #ccc;"></div>
+                <div class="color-swatch" data-color="#ff0000" style="background: #ff0000;"></div>
+                <div class="color-swatch" data-color="#00ff00" style="background: #00ff00;"></div>
+                <div class="color-swatch" data-color="#0000ff" style="background: #0000ff;"></div>
+                <div class="color-swatch" data-color="#ffff00" style="background: #ffff00;"></div>
+                <div class="color-swatch" data-color="#ff00ff" style="background: #ff00ff;"></div>
+                <div class="color-swatch" data-color="#00ffff" style="background: #00ffff;"></div>
+                <div class="color-swatch" data-color="#ff8000" style="background: #ff8000;"></div>
+                <div class="color-swatch" data-color="#8000ff" style="background: #8000ff;"></div>
+                <div class="color-swatch" data-color="#008000" style="background: #008000;"></div>
+                <div class="color-swatch" data-color="#800000" style="background: #800000;"></div>
+            </div>
+        </div>
+        
+        <div class="canvas-info">
+            <span>Размер: 64x64 пикселя</span>
+        </div>
+    </div>
+    
+    <div class="canvas-container">
+        <canvas id="paint-canvas" width="512" height="512"></canvas>
+    </div>
+    
+    <div class="paint-actions">
+        <button type="button" class="btn-win98" id="undo-action" title="Отменить (Ctrl+Z)">
+            ↩️ Отменить
+        </button>
+        <button type="button" class="btn-win98" id="download-image" title="Скачать">
+            📥 Скачать
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'paint/css/paint.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'paint/js/paint.js' %}"></script>
+{% endblock %} 
