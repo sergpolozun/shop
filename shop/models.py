@@ -2,6 +2,7 @@ from django.db import models
 from django.urls import reverse
 from django.utils import timezone
 from django.contrib.auth.models import User
+from simple_history.models import HistoricalRecords
 
 
 # --- Кастомный менеджер ---
@@ -39,6 +40,7 @@ class ProductTag(models.Model):
 class Category(models.Model):
     name = models.CharField(max_length=20, unique=True)
     slug = models.SlugField(max_length=20, unique=True)
+    history = HistoricalRecords()
 
     class Meta:
         ordering = ['name']
@@ -73,6 +75,7 @@ class Product(models.Model):
     discount = models.DecimalField(default=0.00, max_digits=4, decimal_places=2)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='std')
     views_count = models.PositiveIntegerField(default=0, verbose_name='Количество просмотров')
+    history = HistoricalRecords()
     
     # ManyToManyField с параметром through
     tags = models.ManyToManyField(Tag, through=ProductTag, related_name='products')
@@ -125,6 +128,7 @@ class Review(models.Model):
     rating = models.IntegerField(choices=RATING_CHOICES)
     text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+    history = HistoricalRecords()
     
     # ManyToManyField без through
     helpful_votes = models.ManyToManyField('auth.User', related_name='helpful_reviews')

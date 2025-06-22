@@ -84,15 +84,15 @@
   </section>
 </div>
 
-<!-- Модальное окно товара -->
+<!-- Модальное окно для детального просмотра товара -->
 <div id="productModal" class="modal-win98">
     <div class="modal-content-win98">
         <div class="modal-header-win98">
-            <h3 id="modalTitle">Детали товара</h3>
+            <h3 id="productModalTitle"></h3>
             <button class="close-btn-win98" onclick="closeProductModal()">×</button>
         </div>
-        <div class="modal-body-win98" id="modalBody">
-            <!-- Контент будет загружен через AJAX -->
+        <div class="modal-body-win98" id="productModalBody">
+            <!-- Содержимое будет загружено сюда -->
         </div>
     </div>
 </div>
@@ -239,6 +239,37 @@
       <button class="btn-win98" onclick="closeLogoutModal()">Отмена</button>
     </div>
   </div>
+</div>
+
+<div class="reviews-container">
+    <!-- Модальное окно отзывов -->
+    <div id="reviewsModal" class="modal-win98 reviews-modal">
+        <div class="modal-content-win98">
+            <div class="modal-header-win98">
+                <h3 id="reviewsModalTitle">Отзывы о товаре</h3>
+                <button class="close-btn-win98" onclick="closeReviewsModal()">×</button>
+            </div>
+            <div class="modal-body-win98" id="reviewsModalBody">
+                <!-- Контент будет загружен через AJAX -->
+            </div>
+            <div class="modal-footer-win98">
+                <button class="btn-win98" onclick="openReviewFormModal()">Добавить отзыв</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно формы отзыва -->
+    <div id="reviewFormModal" class="modal-win98 review-form-modal">
+        <div class="modal-content-win98">
+            <div class="modal-header-win98">
+                <h3>Добавить отзыв</h3>
+                <button class="close-btn-win98" onclick="closeReviewFormModal()">×</button>
+            </div>
+            <div class="modal-body-win98" id="reviewFormModalBody">
+                <!-- Форма будет загружена через AJAX -->
+            </div>
+        </div>
+    </div>
 </div>
 
 {% endblock %}

@@ -11,22 +11,44 @@ function openProductModal(productId) {
         modal.className = 'modal-win98';
         modal.innerHTML = `<div class="modal-content-win98">
           <div class="modal-header-win98">
-            <h3 id="modalTitle">Детали товара</h3>
+            <h3 id="productModalTitle"></h3>
             <button class="close-btn-win98" onclick="closeProductModal()">×</button>
           </div>
-          <div class="modal-body-win98" id="modalBody"></div>
+          <div class="modal-body-win98" id="productModalBody"></div>
         </div>`;
         document.body.appendChild(modal);
       }
-      document.getElementById('modalTitle').textContent = data.name;
-      document.getElementById('modalBody').innerHTML = data.html;
+      document.getElementById('productModalTitle').textContent = data.name;
+      document.getElementById('productModalBody').innerHTML = data.html;
       modal.style.display = 'flex';
+      modal.classList.remove('product-modal-shifted');
+      modal.classList.add('product-modal-normal');
     });
 }
 
 function closeProductModal() {
   let modal = document.getElementById('productModal');
-  if (modal) modal.style.display = 'none';
+  if (modal) {
+    modal.style.display = 'none';
+    modal.classList.remove('product-modal-shifted', 'product-modal-normal');
+  }
+  
+  // Закрываем модальные окна отзывов
+  const reviewsModal = document.getElementById('reviewsModal');
+  if (reviewsModal) {
+    reviewsModal.style.display = 'none';
+    reviewsModal.classList.remove('show', 'hide');
+  }
+  
+  const reviewFormModal = document.getElementById('reviewFormModal');
+  if (reviewFormModal) {
+    reviewFormModal.style.display = 'none';
+    reviewFormModal.classList.remove('show', 'hide');
+  }
+  
+  // Сбрасываем текущий товар
+  currentProductId = null;
+  currentProductName = '';
 }
 
 function changeQtyModal(btn, delta) {
@@ -322,6 +344,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
+  // Динамическое создание обертки для модальных окон отзывов
+  const reviewsModal = document.getElementById('reviewsModal');
+  const reviewFormModal = document.getElementById('reviewFormModal');
+  
+  if (reviewsModal && reviewFormModal) {
+    const reviewsContainer = document.createElement('div');
+    reviewsContainer.className = 'reviews-container';
+    
+    // Вставляем контейнер в body
+    document.body.appendChild(reviewsContainer);
+    
+    // Перемещаем модальные окна в контейнер
+    reviewsContainer.appendChild(reviewsModal);
+    reviewsContainer.appendChild(reviewFormModal);
+  }
+  
   window.onclick = function(event) {
     const paymentModal = document.getElementById('paymentModal');
     const clearCartModal = document.getElementById('clearCartModal');
@@ -336,4 +374,199 @@ document.addEventListener('DOMContentLoaded', function() {
       closeProductModal();
     }
   }
-}); 
+});
+
+function toggleFavoriteModal(productId, button) {
+  console.log('toggleFavoriteModal called with productId:', productId);
+  
+  // Получаем CSRF-токен
+  const modal = document.getElementById('productModal');
+  let csrfToken = modal.querySelector('input[name="csrfmiddlewaretoken"]');
+  
+  if (!csrfToken) {
+    csrfToken = document.createElement('input');
+    csrfToken.type = 'hidden';
+    csrfToken.name = 'csrfmiddlewaretoken';
+    csrfToken.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    modal.appendChild(csrfToken);
+  }
+  
+  const formData = new FormData();
+  formData.append('csrfmiddlewaretoken', csrfToken.value);
+  
+  fetch(`/shop/favorite/toggle/${productId}/`, {
+    method: 'POST',
+    body: formData,
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest',
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      showNotification(data.message, 'success');
+      
+      // Обновляем текст кнопки
+      if (data.is_favorite) {
+        button.textContent = 'Удалить из избранного';
+        button.className = 'btn-win98 favorite-active';
+      } else {
+        button.textContent = 'Добавить в избранное';
+        button.className = 'btn-win98';
+      }
+      
+      // Обновляем карточку товара в списке
+      const productCard = document.querySelector(`[onclick="openProductModal(${productId})"]`);
+      if (productCard) {
+        if (data.is_favorite) {
+          productCard.classList.add('favorite-product');
+        } else {
+          productCard.classList.remove('favorite-product');
+        }
+      }
+    } else {
+      showNotification('Ошибка при работе с избранным', 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    showNotification('Ошибка при работе с избранным', 'error');
+  });
+}
+
+// Добавляем обработчики событий для форм отзывов при загрузке модального окна
+document.addEventListener('DOMContentLoaded', function() {
+  // Обработчик для форм отзывов
+  document.addEventListener('submit', function(event) {
+    if (event.target.classList.contains('review-form')) {
+      event.preventDefault();
+      const productId = event.target.id.split('_')[1];
+      submitReview(productId);
+    }
+  });
+});
+
+// Глобальные переменные для отслеживания состояния
+let currentProductId = null;
+let currentProductName = '';
+
+// Функция открытия модального окна отзывов
+function openReviewsModal(productId) {
+  currentProductId = productId;
+  const productModal = document.getElementById('productModal');
+  const reviewsModal = document.getElementById('reviewsModal');
+
+  // Сдвигаем основное модальное окно
+  if (productModal) {
+    productModal.classList.add('product-modal-shifted');
+    productModal.classList.remove('product-modal-normal');
+  }
+
+  // Загружаем и показываем окно отзывов
+  fetch(`/shop/product/${productId}/reviews/`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.success && reviewsModal) {
+        document.getElementById('reviewsModalBody').innerHTML = data.html;
+        reviewsModal.style.display = 'flex';
+        reviewsModal.classList.add('show');
+      } else {
+        showNotification('Ошибка при загрузке отзывов', 'error');
+      }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+// Функция закрытия модального окна отзывов
+function closeReviewsModal() {
+  const productModal = document.getElementById('productModal');
+  const reviewsModal = document.getElementById('reviewsModal');
+
+  // Возвращаем основное окно в центр
+  if (productModal) {
+    productModal.classList.remove('product-modal-shifted');
+    productModal.classList.add('product-modal-normal');
+  }
+
+  // Скрываем окно отзывов
+  if (reviewsModal) {
+    reviewsModal.classList.remove('show');
+    reviewsModal.classList.add('hide');
+    setTimeout(() => {
+      reviewsModal.style.display = 'none';
+      reviewsModal.classList.remove('hide');
+    }, 400);
+  }
+}
+
+// Функция открытия модального окна формы отзыва
+function openReviewFormModal() {
+  const reviewsModal = document.getElementById('reviewsModal');
+  const reviewFormModal = document.getElementById('reviewFormModal');
+
+  // Скрываем окно отзывов и показываем форму
+  if (reviewsModal) {
+    reviewsModal.style.display = 'none';
+  }
+
+  fetch(`/shop/product/${currentProductId}/review-form/`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.success && reviewFormModal) {
+        document.getElementById('reviewFormModalBody').innerHTML = data.html;
+        reviewFormModal.style.display = 'block';
+        reviewFormModal.classList.add('show');
+      } else {
+        showNotification(data.message || 'Ошибка', 'error');
+      }
+    });
+}
+
+// Функция закрытия модального окна формы отзыва
+function closeReviewFormModal() {
+  const reviewFormModal = document.getElementById('reviewFormModal');
+  if (reviewFormModal) {
+    reviewFormModal.classList.remove('show');
+    reviewFormModal.classList.add('hide');
+    setTimeout(() => {
+      reviewFormModal.style.display = 'none';
+      reviewFormModal.classList.remove('hide');
+    }, 400);
+  }
+}
+
+// Обновленная функция отправки отзыва
+function submitReview(productId) {
+  const form = document.getElementById(`reviewForm_${productId}`);
+  if (!form) {
+    console.error('Review form not found');
+    return;
+  }
+  
+  const formData = new FormData(form);
+  
+  fetch(`/shop/product/${productId}/review/`, {
+    method: 'POST',
+    body: formData,
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest',
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      showNotification(data.message, 'success');
+      closeReviewFormModal(); // Закрываем форму
+      closeReviewsModal(); // Закрываем и список отзывов (возвращает основное окно в центр)
+      
+      // Можно опционально перезагрузить основное окно, чтобы обновить счетчик
+      setTimeout(() => openProductModal(productId), 500);
+    } else {
+      showNotification(data.message, 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    showNotification('Ошибка при отправке отзыва', 'error');
+  });
+} 

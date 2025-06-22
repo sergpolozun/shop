@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from . import views
 
 app_name = 'shop'
@@ -18,4 +18,9 @@ urlpatterns = [
     path('product/<int:pk>/stats/', views.product_stats, name='product_stats'),
     path('favorite/toggle/<int:product_id>/', views.favorite_toggle, name='favorite_toggle'),
     path('favorite/', views.favorite_list, name='favorite_list'),
+    path('product/<int:product_id>/review/', views.add_review, name='add_review'),
+    path('product/<int:product_id>/reviews/', views.get_reviews, name='get_reviews'),
+    path('product/<int:product_id>/review-form/', views.get_review_form, name='get_review_form'),
+    # API URLs
+    path('api/', include('shop.api_urls')),
 ]

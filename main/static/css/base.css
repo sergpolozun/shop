@@ -967,17 +967,41 @@ body {
     background-color: rgba(0, 0, 0, 0.5);
     justify-content: center;
     align-items: center;
+    transition: background-color 0.3s ease;
+}
+
+#productModal {
+    pointer-events: auto;
 }
 
 .modal-content-win98 {
-    background: #c0c0c0;
-    border: 2px solid #000;
-    box-shadow: 4px 4px 0 #333;
-    width: 400px;
-    max-width: 90%;
-    max-height: 80%;
-    overflow-y: auto;
+    position: relative;
+    background-color: #c0c0c0;
+    margin: auto; /* Центрирование в flex-контейнере .modal-win98 */
+    padding: 0;
+    border: 2px solid;
+    border-top-color: #fff;
+    border-left-color: #fff;
+    border-right-color: #000;
+    border-bottom-color: #000;
+    box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.4);
+    width: 500px;
+    height: 420px;
+    /* animation: openModal 0.3s ease-out; */ /* Эта анимация может конфликтовать */
+    display: flex;
+    flex-direction: column;
     font-family: "Pixelated MS Sans Serif", sans-serif;
+    transition: transform 0.4s ease-out, opacity 0.3s ease;
+    overflow: hidden; /* Чтобы дочерние элементы не выходили за рамки */
+}
+
+/* Применяем сдвиг к содержимому модального окна, а не ко всему окну */
+#productModal.product-modal-shifted .modal-content-win98 {
+    transform: translateX(-51%); /* Сдвигаем влево на половину ширины + небольшой отступ */
+}
+
+#productModal.product-modal-normal .modal-content-win98 {
+    transform: translateX(0);
 }
 
 .modal-header-win98 {
@@ -1025,6 +1049,8 @@ body {
     border-top: 2px inset #fff;
     border-left: 2px inset #fff;
     color: black;
+    overflow-y: auto; /* Скролл только для тела модалки */
+    flex-grow: 1;
 }
 
 /* Стили для элементов категорий */
@@ -1395,15 +1421,10 @@ body {
 
 /* Стили для статуса корзины в модальном окне */
 .cart-status {
-    background: #4CAF50;
-    color: white;
-    padding: 8px 12px;
-    border-radius: 4px;
-    margin-bottom: 10px;
-    font-size: 14px;
-    font-weight: bold;
-    text-align: center;
-    border: 1px solid #45a049;
+    padding: 20px;
+    background: #fff;
+    color: #000;
+    border-radius: 5px;
 }
 
 /* Стили для избранных товаров */
@@ -1415,36 +1436,6 @@ body {
 .favorite-product .product-info p,
 .favorite-product .product-price {
   color: #000 !important;
-}
-
-/* Увеличиваем размер модального окна */
-.modal-content-win98 {
-  max-width: 600px;
-  width: 90%;
-  max-height: 80vh;
-  background: #c0c0c0;
-  border: 2px outset #fff;
-  border-right: 2px outset #808080;
-  border-bottom: 2px outset #808080;
-  box-shadow: 2px 2px 0 #888;
-  position: relative;
-  overflow: hidden;
-}
-
-/* Стили для кнопки избранного в модальном окне */
-.favorite-active {
-  background: #008483 !important;
-  color: #ffffff !important;
-  border: 2px inset #000 !important;
-}
-
-.favorite-active:hover {
-  background: #006666 !important;
-  color: #ffffff !important;
-}
-
-.product-card {
-  position: relative;
 }
 
 /* Стили для страниц авторизации */
@@ -1577,12 +1568,6 @@ link[rel="icon"] {
   height: 48px;
   image-rendering: pixelated;
 }
-
-/* Стили для корневых элементов */
-  
-  
-  
-  
 
 /* Терминал стили */
 .terminal-container {
@@ -1741,7 +1726,274 @@ link[rel="icon"] {
 }
 
 .terminal-container::-webkit-scrollbar-thumb:hover {
-    background: #00cc00;
+    background: #555;
+}
+
+/* Стили для отзывов */
+.reviews-section {
+  margin-top: 20px;
+  border-top: 2px solid #c0c0c0;
+  padding-top: 15px;
+}
+
+.reviews-section h4 {
+  color: #000;
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  background: #c0c0c0;
+  padding: 4px 8px;
+  border: 2px outset #fff;
+  display: inline-block;
+}
+
+.rating-summary {
+  margin-bottom: 15px;
+  padding: 8px;
+  background: #f0f0f0;
+  border: 2px inset #fff;
+}
+
+.avg-rating {
+  color: #000;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.reviews-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.review-item {
+  margin-bottom: 15px;
+  padding: 10px;
+  background: #f0f0f0;
+  border: 2px inset #fff;
+  border-radius: 0;
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.review-author {
+  color: #000;
+  font-weight: bold;
+  font-size: 12px;
+  background: #c0c0c0;
+  padding: 2px 6px;
+  border: 2px outset #fff;
+}
+
+.review-rating {
+  color: #000;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.review-date {
+  color: #666;
+  font-size: 11px;
+  background: #e0e0e0;
+  padding: 2px 6px;
+  border: 1px inset #fff;
+}
+
+.review-text {
+  color: #000;
+  font-size: 12px;
+  line-height: 1.4;
+  background: #fff;
+  padding: 8px;
+  border: 2px inset #fff;
+  min-height: 40px;
+}
+
+.review-form-section {
+  margin-top: 20px;
+  border-top: 2px solid #c0c0c0;
+  padding-top: 15px;
+}
+
+.review-form-section h4 {
+  color: #000;
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  background: #c0c0c0;
+  padding: 4px 8px;
+  border: 2px outset #fff;
+  display: inline-block;
+}
+
+.review-form {
+  background: #f0f0f0;
+  padding: 15px;
+  border: 2px inset #fff;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  color: #000;
+  font-size: 12px;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.input-win98, .select-win98, .textarea-win98 {
+  width: 100%;
+  padding: 6px 8px;
+  border: 2px inset #fff;
+  background: #fff;
+  color: #000;
+  font-family: "Pixelated MS Sans Serif", sans-serif;
+  font-size: 12px;
+  box-sizing: border-box;
+}
+
+.input-win98:focus, .select-win98:focus, .textarea-win98:focus {
+  outline: none;
+  border: 2px inset #000;
+  background: #fff;
+}
+
+.textarea-win98 {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.select-win98 {
+  cursor: pointer;
+}
+
+.select-win98 option {
+  background: #fff;
+  color: #000;
+  padding: 4px;
+}
+
+/* Стили для скроллбара в списке отзывов */
+.reviews-list::-webkit-scrollbar {
+  width: 16px;
+}
+
+.reviews-list::-webkit-scrollbar-track {
+  background: #c0c0c0;
+  border: 1px inset #fff;
+}
+
+.reviews-list::-webkit-scrollbar-thumb {
+  background: #808080;
+  border: 1px outset #fff;
+}
+
+.reviews-list::-webkit-scrollbar-thumb:hover {
+  background: #666;
+}
+
+/*
+    ================================================
+    Стили для модальных окон ОТЗЫВОВ
+    ================================================
+*/
+
+/* Общий контейнер для правых модалок (отзывы и форма) */
+.reviews-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1001; /* Выше чем фон от productModal */
+    pointer-events: none; /* Чтобы не перехватывать клики */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Стили для модальных окон отзывов и формы */
+.reviews-modal, .review-form-modal {
+    pointer-events: all; /* Включаем клики для самих окон */
+    display: none; /* Управляется через JS */
+}
+
+/* Позиционируем контент правых модалок */
+.reviews-modal .modal-content-win98,
+.review-form-modal .modal-content-win98 {
+    position: relative; /* Убираем absolute, чтобы окно было в потоке flex */
+    margin: 0;
+    transition: opacity 0.3s ease, transform 0.4s ease-out;
+}
+
+.modal-footer-win98 {
+  padding: 8px 12px;
+  background-color: #c0c0c0;
+  border-top: 2px solid #fff;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.modal-footer-win98 .btn-win98 {
+  margin-left: 8px;
+}
+
+/* Анимация для правых модалок */
+.reviews-modal.show .modal-content-win98,
+.review-form-modal.show .modal-content-win98 {
+    opacity: 1;
+    transform: translateX(51%) !important; /* Сдвигаем вправо, симметрично окну товара */
+    pointer-events: auto; /* Делаем активным */
+}
+
+.reviews-modal.hide .modal-content-win98,
+.review-form-modal.hide .modal-content-win98 {
+    opacity: 0;
+    transform: translateX(calc(250px + 20px)) scale(0.95);
+}
+
+.reviews-modal > *, .review-form-modal > * {
+    pointer-events: auto; /* Re-enable pointer events for the modal content itself */
+}
+
+/* Стили для модальных окон отзывов и формы добавления отзыва */
+.reviews-modal .modal-content-win98,
+.review-form-modal .modal-content-win98 {
+    opacity: 0; /* Изначально прозрачны */
+    transform: scale(0.95); /* Изначально немного уменьшены */
+    transition: opacity 0.3s ease, transform 0.4s ease-out;
+    pointer-events: none; /* Неактивны, пока невидимы */
+}
+
+/* Когда модальное окно отзывов должно появиться */
+.reviews-modal.show .modal-content-win98,
+.review-form-modal.show .modal-content-win98 {
+    opacity: 1;
+    transform: translateX(51%); /* Сдвигаем вправо, симметрично окну товара */
+    pointer-events: auto; /* Делаем активным */
+}
+
+.modal-footer-win98 {
+    padding: 8px 12px;
+}
+
+.btn-win98.favorite-active {
+    background-color: #008483; /* Цвет как у скидки */
+    color: white;
+    font-weight: bold;
+}
+
+.favorite-product {
+    border: 2px solid #008483 !important;
 }
 
   

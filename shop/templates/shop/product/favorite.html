@@ -48,29 +48,29 @@
 
   <!-- Список товаров -->
   <section class="product-list" aria-label="Список избранных товаров">
-    {% for product in products %}
-      <article class="product-card favorite-product" onclick="openProductModal({{ product.id }})">
+    {% for favorite in favorites %}
+      <article class="product-card favorite-product" onclick="openProductModal({{ favorite.product.id }})">
         <div class="product-image">
-        {% if product.image %}
-          <img src="{{ product.image.url }}" alt="{{ product.name }}">
+        {% if favorite.product.image %}
+          <img src="{{ favorite.product.image.url }}" alt="{{ favorite.product.name }}">
         {% else %}
           <img src="{% static 'img/notfound.jpg' %}" alt="Изображение не найдено">
         {% endif %}
         </div>
 
         <div class="product-info">
-          <h3>{{ product.name|truncatewords:3 }}</h3>
-          <p class="product-date">Добавлено: {{ product.created_at|date:"d.m.Y" }}</p>
+          <h3>{{ favorite.product.name|truncatewords:3 }}</h3>
+          <p class="product-date">Добавлено: {{ favorite.product.created_at|date:"d.m.Y" }}</p>
 
-        {% if product.discount %}
+        {% if favorite.product.discount %}
             <div class="product-price">
-            <span class="old-price">{{ product.price }}₽</span>
-            <span class="discount-price">{{ product.discount_price }}₽</span>
-              <span class="discount-badge">-{{ product.discount }}%</span>
+            <span class="old-price">{{ favorite.product.price }}₽</span>
+            <span class="discount-price">{{ favorite.product.discount_price }}₽</span>
+              <span class="discount-badge">-{{ favorite.product.discount }}%</span>
             </div>
         {% else %}
             <div class="product-price">
-              <span class="current-price">{{ product.price }}₽</span>
+              <span class="current-price">{{ favorite.product.price }}₽</span>
             </div>
         {% endif %}
         </div>
@@ -85,12 +85,36 @@
 <div id="productModal" class="modal-win98">
     <div class="modal-content-win98">
         <div class="modal-header-win98">
-            <h3 id="modalTitle">Детали товара</h3>
+            <h3 id="productModalTitle">Детали товара</h3>
             <button class="close-btn-win98" onclick="closeProductModal()">×</button>
         </div>
-        <div class="modal-body-win98" id="modalBody">
+        <div class="modal-body-win98" id="productModalBody">
             <!-- Контент будет загружен через AJAX -->
         </div>
+    </div>
+</div>
+
+<!-- Модальные окна для отзывов (пустые, для работы JS) -->
+<div id="reviewsModal" class="modal-win98 reviews-modal">
+    <div class="modal-content-win98">
+        <div class="modal-header-win98">
+            <h3 id="reviewsModalTitle">Отзывы о товаре</h3>
+            <button class="close-btn-win98" onclick="closeReviewsModal()">×</button>
+        </div>
+        <div class="modal-body-win98" id="reviewsModalBody"></div>
+        <div class="modal-footer-win98">
+            <button class="btn-win98" onclick="openReviewFormModal()">Добавить отзыв</button>
+        </div>
+    </div>
+</div>
+
+<div id="reviewFormModal" class="modal-win98 review-form-modal">
+    <div class="modal-content-win98">
+        <div class="modal-header-win98">
+            <h3>Добавить отзыв</h3>
+            <button class="close-btn-win98" onclick="closeReviewFormModal()">×</button>
+        </div>
+        <div class="modal-body-win98" id="reviewFormModalBody"></div>
     </div>
 </div>
 

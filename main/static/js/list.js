@@ -5,18 +5,60 @@ function openProductModal(productId) {
     fetch(`/shop/product/${productId}/detail/`)
         .then(response => response.json())
         .then(data => {
-            document.getElementById('modalTitle').textContent = data.name;
-            document.getElementById('modalBody').innerHTML = data.html;
-            document.getElementById('productModal').style.display = 'flex';
+            document.getElementById('productModalTitle').textContent = data.name;
+            document.getElementById('productModalBody').innerHTML = data.html;
+
+            const productModal = document.getElementById('productModal');
+            productModal.style.display = 'block';
+
+            const productContent = productModal.querySelector('.modal-content-win98');
+            productContent.style.width = '500px';
+            productContent.style.height = '420px';
+            productContent.style.position = 'absolute';
+            productContent.style.top = '50%';
+            productContent.style.left = '50%';
+            productContent.style.margin = '0';
+            productContent.style.transform = 'translate(-110%, -50%)';
         })
         .catch(error => {
-            document.getElementById('modalBody').innerHTML = '<p>Ошибка загрузки данных</p>';
-            document.getElementById('productModal').style.display = 'flex';
+            console.error('Ошибка загрузки данных о товаре:', error);
+            document.getElementById('productModalBody').innerHTML = '<p>Ошибка загрузки данных</p>';
+            document.getElementById('productModal').style.display = 'block';
         });
 }
 
 function closeProductModal() {
     document.getElementById('productModal').style.display = 'none';
+    closeReviewsModal(); // Закрываем и окно отзывов
+}
+
+// Функции для модального окна отзывов
+function openReviewsModal(productId) {
+    fetch(`/shop/reviews/${productId}/`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('reviewsModalBody').innerHTML = data.html;
+            
+            const reviewsModal = document.getElementById('reviewsModal');
+            reviewsModal.style.display = 'block';
+
+            const reviewsContent = reviewsModal.querySelector('.modal-content-win98');
+            reviewsContent.style.width = '500px';
+            reviewsContent.style.height = '420px';
+            reviewsContent.style.position = 'absolute';
+            reviewsContent.style.top = '50%';
+            reviewsContent.style.left = '50%';
+            reviewsContent.style.margin = '0';
+            reviewsContent.style.transform = 'translate(10%, -50%)';
+        })
+        .catch(error => console.error('Ошибка загрузки отзывов:', error));
+}
+
+function closeReviewsModal() {
+    const reviewsModal = document.getElementById('reviewsModal');
+    if (reviewsModal) {
+        reviewsModal.style.display = 'none';
+    }
 }
 
 // Функции для модального окна категорий
@@ -105,6 +147,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const productModal = document.getElementById('productModal');
         const categoriesModal = document.getElementById('categoriesModal');
         const filterModal = document.getElementById('filterModal');
+        const reviewsModal = document.getElementById('reviewsModal');
+
         if (event.target === productModal) {
             closeProductModal();
         }
@@ -113,6 +157,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         if (event.target === filterModal) {
             closeFilter();
+        }
+        if (event.target === reviewsModal) {
+            closeReviewsModal();
         }
     };
     // Для highlightCurrentCategory (чтобы работало после рендера)

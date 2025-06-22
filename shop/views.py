@@ -175,6 +175,9 @@ def product_detail_json(request, pk):
     if request.user.is_authenticated:
         is_favorite = Favorite.objects.filter(user=request.user, product=product).exists()
     
+    # Получаем количество отзывов для кнопки
+    reviews_count = Review.objects.filter(product=product).count()
+    
     # Определяем статус товара
     status_text = ""
     if product.status == 'sale':
@@ -225,6 +228,12 @@ def product_detail_json(request, pk):
     <button class="{favorite_class}" onclick="toggleFavoriteModal({product.id}, this)">{favorite_text}</button>
     """
     
+    # Формируем HTML для кнопки отзывов
+    reviews_text = f"Отзывы ({reviews_count})" if reviews_count > 0 else "Отзывы (0)"
+    reviews_html = f"""
+    <button class="btn-win98" onclick="openReviewsModal({product.id})">{reviews_text}</button>
+    """
+    
     html_content = f"""
     <div class="product-detail-win98">
         <div class="product-image-container">
@@ -240,6 +249,7 @@ def product_detail_json(request, pk):
             <div class="product-actions">
                 {cart_html}
                 {favorite_html}
+                {reviews_html}
             </div>
         </div>
     </div>
@@ -454,38 +464,170 @@ def cart_update(request, product_id):
 
 @login_required
 def favorite_toggle(request, product_id):
-    product = get_object_or_404(Product, id=product_id)
-    fav, created = Favorite.objects.get_or_create(user=request.user, product=product)
-    if not created:
-        fav.delete()
-        return JsonResponse({'status': 'removed'})
-    return JsonResponse({'status': 'added'})
+    if request.method == 'POST':
+        product = get_object_or_404(Product, id=product_id)
+        
+        # Новая логика: ищем существующий объект
+        favorite = Favorite.objects.filter(user=request.user, product=product).first()
+        
+        if favorite:
+            # Если нашли - удаляем
+            favorite.delete()
+            is_favorite = False
+            message = 'Товар удален из избранного.'
+        else:
+            # Если не нашли - создаем
+            Favorite.objects.create(user=request.user, product=product)
+            is_favorite = True
+            message = 'Товар добавлен в избранное.'
+        
+        return JsonResponse({'success': True, 'is_favorite': is_favorite, 'message': message})
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request method.'}, status=405)
 
 
 @login_required
 def favorite_list(request):
     favorites = Favorite.objects.filter(user=request.user).select_related('product')
-    products = [fav.product for fav in favorites]
-    categories = Category.objects.all()
+    return render(request, 'shop/product/favorite.html', {
+        'favorites': favorites
+    })
+
+
+@login_required
+def add_review(request, product_id):
+    if request.method == 'POST':
+        product = get_object_or_404(Product, id=product_id)
+        
+        author = request.POST.get('author', '').strip()
+        rating = request.POST.get('rating')
+        text = request.POST.get('text', '').strip()
+        
+        # Валидация
+        if not author or not rating or not text:
+            return JsonResponse({
+                'success': False, 
+                'message': 'Все поля обязательны для заполнения'
+            })
+        
+        try:
+            rating = int(rating)
+            if rating < 1 or rating > 5:
+                return JsonResponse({
+                    'success': False, 
+                    'message': 'Рейтинг должен быть от 1 до 5'
+                })
+        except (ValueError, TypeError):
+            return JsonResponse({
+                'success': False, 
+                'message': 'Некорректный рейтинг'
+            })
+        
+        # Создаем отзыв
+        review = Review.objects.create(
+            product=product,
+            author=author,
+            rating=rating,
+            text=text
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Отзыв успешно добавлен!',
+            'review': {
+                'author': review.author,
+                'rating': review.rating,
+                'text': review.text,
+                'created_at': review.created_at.strftime('%d.%m.%Y')
+            }
+        })
     
-    # Получаем ID избранных товаров для правильного отображения
-    favorite_ids = list(Favorite.objects.filter(user=request.user).values_list('product_id', flat=True))
+    return JsonResponse({'success': False, 'message': 'Неверный метод запроса'})
+
+
+def get_reviews(request, product_id):
+    """Получить все отзывы для товара"""
+    product = get_object_or_404(Product, id=product_id)
+    reviews = Review.objects.filter(product=product).order_by('-created_at')
+    avg_rating = Review.objects.filter(product=product).aggregate(Avg('rating'))['rating__avg'] or 0
     
-    # Пагинация для избранных товаров
-    paginator = Paginator(products, 20)  # 20 товаров на страницу
-    page_number = request.GET.get('page')
-    try:
-        page_obj = paginator.page(page_number)
-    except PageNotAnInteger:
-        page_obj = paginator.page(1)
-    except EmptyPage:
-        page_obj = paginator.page(paginator.num_pages)
+    reviews_html = ""
+    if reviews.exists():
+        reviews_html = f"""
+        <div class="rating-summary">
+            <span class="avg-rating">Средний рейтинг: {avg_rating:.1f} ⭐</span>
+        </div>
+        <div class="reviews-list">
+        """
+        
+        for review in reviews:
+            stars = "⭐" * review.rating
+            reviews_html += f"""
+            <div class="review-item">
+                <div class="review-header">
+                    <span class="review-author">{review.author}</span>
+                    <span class="review-rating">{stars}</span>
+                    <span class="review-date">{review.created_at.strftime('%d.%m.%Y')}</span>
+                </div>
+                <div class="review-text">{review.text}</div>
+            </div>
+            """
+        
+        reviews_html += "</div>"
+    else:
+        reviews_html = '<p class="no-reviews">Пока нет отзывов. Будьте первым!</p>'
     
-    context = {
-        'products': page_obj,
-        'page_obj': page_obj,
-        'categories': categories,
-        'favorite_page': True,
-        'favorite_ids': favorite_ids,
-    }
-    return render(request, 'shop/product/favorite.html', context)
+    return JsonResponse({
+        'success': True,
+        'html': reviews_html,
+        'count': reviews.count(),
+        'avg_rating': avg_rating
+    })
+
+
+def get_review_form(request, product_id):
+    """Получить форму добавления отзыва"""
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            'success': False,
+            'message': 'Необходимо войти в систему'
+        })
+    
+    product = get_object_or_404(Product, id=product_id)
+    
+    # Получаем имя пользователя из профиля или используем username
+    user_name = request.user.first_name or request.user.username
+    
+    form_html = f"""
+    <form id="reviewForm_{product.id}" class="review-form">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">
+        <div class="form-group">
+            <label>Ваше имя:</label>
+            <input type="text" name="author" class="input-win98" value="{user_name}" required>
+        </div>
+        <div class="form-group">
+            <label>Рейтинг:</label>
+            <select name="rating" class="select-win98" required>
+                <option value="">Выберите рейтинг</option>
+                <option value="5">5 ⭐ Отлично</option>
+                <option value="4">4 ⭐ Хорошо</option>
+                <option value="3">3 ⭐ Удовлетворительно</option>
+                <option value="2">2 ⭐ Плохо</option>
+                <option value="1">1 ⭐ Очень плохо</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Ваш отзыв:</label>
+            <textarea name="text" class="textarea-win98" rows="4" required placeholder="Напишите ваш отзыв о товаре..."></textarea>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn-win98">Отправить отзыв</button>
+            <button type="button" class="btn-win98" onclick="closeReviewFormModal()">Отмена</button>
+        </div>
+    </form>
+    """
+    
+    return JsonResponse({
+        'success': True,
+        'html': form_html
+    })
