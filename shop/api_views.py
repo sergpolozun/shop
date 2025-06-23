@@ -77,6 +77,24 @@ class ProductViewSet(ModelViewSet):
         product.save()
         return Response({'message': 'Просмотры увеличены'}, status=status.HTTP_200_OK)
 
+    @action(detail=False, methods=['get'])
+    def special_filter(self, request):
+        """(скидка > 0 ИЛИ статус 'new') И НЕ категория 'Архив'"""
+        q_or = Q(discount__gt=0) | Q(status='new')
+        q_not = ~Q(category__name='Архив')
+        products = Product.objects.filter(q_or & q_not)
+        serializer = self.get_serializer(products, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def cheap_or_popular_not_sale(self, request):
+        """(цена < 1000 ИЛИ просмотров > 100) И НЕ статус 'sale'"""
+        q_or = Q(price__lt=1000) | Q(views_count__gt=100)
+        q_not = ~Q(status='sale')
+        products = Product.objects.filter(q_or & q_not)
+        serializer = self.get_serializer(products, many=True)
+        return Response(serializer.data)
+
 
 class CategoryViewSet(ModelViewSet):
     queryset = Category.objects.all()

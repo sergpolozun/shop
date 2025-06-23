@@ -575,6 +575,7 @@ function submitReview(productId) {
   })
   .catch(error => {
     console.error('Error:', error);
-    showNotification('Ошибка при отправке отзыва', 'error');
+    // Убираем дублирующее уведомление об ошибке
+    // showNotification('Ошибка при отправке отзыва', 'error');
   });
 } 

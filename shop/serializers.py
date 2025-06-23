@@ -73,6 +73,16 @@ class ProductSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Скидка должна быть от 0 до 100 процентов")
         return value
 
+    def validate_name(self, value):
+        if Product.objects.filter(name=value).exists():
+            raise serializers.ValidationError("Товар с таким названием уже существует.")
+        return value
+
+    def validate_tags(self, value):
+        if len(value) > 5:
+            raise serializers.ValidationError("Можно выбрать не более 5 тегов для товара.")
+        return value
+
 
 class ProductDetailSerializer(ProductSerializer):
     reviews = ReviewSerializer(many=True, read_only=True)

@@ -1,34 +1,25 @@
-{% extends "main/base.html" %}
-{% load static %}
-
-{% block title %}{{ title }} | POLOS{% endblock %}
-
-{% block content %}
+{% extends "main/base.html" %} {% load static %} {% block title %}{{ title }} |
+POLOS{% endblock %} {% block content %}
 <div class="form-container">
   <div class="win95-header">
     <span>{{ title }}</span>
   </div>
 
   <form method="post" enctype="multipart/form-data" class="product-form">
-    {% csrf_token %}
-    
-    {% for field in form %}
-      <div class="form-group">
-        {{ field.label_tag }}
-        {{ field }}
-        {% if field.help_text %}
-          <small class="help-text">{{ field.help_text }}</small>
-        {% endif %}
-        {% if field.errors %}
-          <div class="error-message">
-            {% for error in field.errors %}
-              <p>{{ error }}</p>
-            {% endfor %}
-          </div>
-        {% endif %}
+    {% csrf_token %} {% for field in form %}
+    <div class="form-group">
+      {{ field.label_tag }} {{ field }} {% if field.help_text %}
+      <small class="help-text">{{ field.help_text }}</small>
+      {% endif %} {% if field.errors %}
+      <div class="error-message">
+        {% for error in field.errors %}
+        <p>{{ error }}</p>
+        {% endfor %}
       </div>
+      {% endif %}
+    </div>
     {% endfor %}
-    
+
     <div class="form-actions">
       <button type="submit" class="btn-primary">Сохранить</button>
       <a href="{% url 'shop:product_list' %}" class="btn-secondary">Отмена</a>
@@ -37,64 +28,64 @@
 </div>
 
 <style>
-.form-container {
-  max-width: 600px;
-  margin: 20px auto;
-  padding: 20px;
-  background: #c0c0c0;
-  border: 2px outset #ffffff;
-}
+  .form-container {
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 20px;
+    background: #c0c0c0;
+    border: 2px outset #ffffff;
+  }
 
-.form-group {
-  margin-bottom: 15px;
-}
+  .form-group {
+    margin-bottom: 15px;
+  }
 
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-}
+  .form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
 
-.form-group input,
-.form-group select,
-.form-group textarea {
-  width: 100%;
-  padding: 8px;
-  border: 2px inset #ffffff;
-  background: #ffffff;
-}
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    width: 100%;
+    padding: 8px;
+    border: 2px inset #ffffff;
+    background: #ffffff;
+  }
 
-.help-text {
-  color: #666;
-  font-size: 12px;
-  margin-top: 5px;
-}
+  .help-text {
+    color: #666;
+    font-size: 12px;
+    margin-top: 5px;
+  }
 
-.error-message {
-  color: #ff0000;
-  font-size: 12px;
-  margin-top: 5px;
-}
+  .error-message {
+    color: #ff0000;
+    font-size: 12px;
+    margin-top: 5px;
+  }
 
-.form-actions {
-  margin-top: 20px;
-  text-align: center;
-}
+  .form-actions {
+    margin-top: 20px;
+    text-align: center;
+  }
 
-.btn-primary,
-.btn-secondary {
-  padding: 8px 16px;
-  margin: 0 5px;
-  border: 2px outset #ffffff;
-  background: #c0c0c0;
-  cursor: pointer;
-  text-decoration: none;
-  color: #000;
-}
+  .btn-primary,
+  .btn-secondary {
+    padding: 8px 16px;
+    margin: 0 5px;
+    border: 2px outset #ffffff;
+    background: #c0c0c0;
+    cursor: pointer;
+    text-decoration: none;
+    color: #000;
+  }
 
-.btn-primary:hover,
-.btn-secondary:hover {
-  border: 2px inset #ffffff;
-}
+  .btn-primary:hover,
+  .btn-secondary:hover {
+    border: 2px inset #ffffff;
+  }
 </style>
-{% endblock %} 
+{% endblock %}

@@ -15,6 +15,11 @@
     <div class="shop-nav-left">
       <button class="btn-win98" onclick="openCategories()">Категории</button>
       <button class="btn-win98" onclick="openFilter()">Фильтрация</button>
+      {% if current_search %}
+        <button class="btn-win98" onclick="window.location.href='/shop/'">Магазин</button>
+      {% else %}
+        <button class="btn-win98" onclick="openSearch()">Поиск</button>
+      {% endif %}
     </div>
     
     <div class="shop-nav-center">
@@ -53,34 +58,38 @@
 
   <!-- Список товаров -->
   <section class="product-list" aria-label="Список товаров">
-    {% for product in products %}
-      <article class="product-card{% if product.id in favorite_ids %} favorite-product{% endif %}" onclick="openProductModal({{ product.id }})">
-        <div class="product-image">
-        {% if product.image %}
-          <img src="{{ product.image.url }}" alt="{{ product.name }}">
-        {% else %}
-          <img src="{% static 'img/notfound.jpg' %}" alt="Изображение не найдено">
-        {% endif %}
-        </div>
+    {% if products %}
+      {% for product in products %}
+        <article class="product-card{% if product.id in favorite_ids %} favorite-product{% endif %}" onclick="openProductModal({{ product.id }})">
+          <div class="product-image">
+          {% if product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.name }}">
+          {% else %}
+            <img src="{% static 'img/notfound.jpg' %}" alt="Изображение не найдено">
+          {% endif %}
+          </div>
 
-        <div class="product-info">
-          <h3>{{ product.name|truncatewords:3 }}</h3>
-          <p class="product-date">Добавлено: {{ product.created_at|date:"d.m.Y" }}</p>
+          <div class="product-info">
+            <h3>{{ product.name|truncatewords:3 }}</h3>
+            <p class="product-date">Добавлено: {{ product.created_at|date:"d.m.Y" }}</p>
 
-        {% if product.discount %}
-            <div class="product-price">
-            <span class="old-price">{{ product.price }}₽</span>
-            <span class="discount-price">{{ product.discount_price }}₽</span>
-              <span class="discount-badge">-{{ product.discount }}%</span>
-            </div>
-        {% else %}
-            <div class="product-price">
-              <span class="current-price">{{ product.price }}₽</span>
-            </div>
-        {% endif %}
-        </div>
-      </article>
-    {% endfor %}
+          {% if product.discount %}
+              <div class="product-price">
+              <span class="old-price">{{ product.price }}₽</span>
+              <span class="discount-price">{{ product.discount_price }}₽</span>
+                <span class="discount-badge">-{{ product.discount }}%</span>
+              </div>
+          {% else %}
+              <div class="product-price">
+                <span class="current-price">{{ product.price }}₽</span>
+              </div>
+          {% endif %}
+          </div>
+        </article>
+      {% endfor %}
+    {% else %}
+      <div style="margin:40px 0;text-align:center;font-size:18px;">Нет товаров</div>
+    {% endif %}
   </section>
 </div>
 
@@ -140,6 +149,11 @@
                             Цене
                         </label>
                         <label class="radio-item">
+                            <input type="radio" name="sort" value="rating" {% if current_sort == 'rating' %}checked{% endif %}>
+                            <span class="radio-custom"></span>
+                            Рейтингу
+                        </label>
+                        <label class="radio-item">
                             <input type="radio" name="sort" value="date" {% if current_sort == 'date' %}checked{% endif %}>
                             <span class="radio-custom"></span>
                             Дате
@@ -197,6 +211,42 @@
                     <button type="button" class="btn-win98" onclick="resetFilter()">Сбросить</button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно поиска -->
+<div id="searchModal" class="modal-win98">
+    <div class="modal-content-win98 search-modal-content">
+        <div class="modal-header-win98">
+            <h3>Поиск товаров</h3>
+            <button class="close-btn-win98" onclick="closeSearch()">×</button>
+        </div>
+        <div class="modal-body-win98">
+            <div class="search-container">
+                <div class="search-gif-container">
+                    <img src="{% static 'img/search/search.gif' %}" alt="Поиск" class="search-gif">
+                </div>
+                <div class="search-form-container">
+                    <form id="searchForm" onsubmit="performSearch(event)">
+                        <div class="search-input-group">
+                            <input type="text" 
+                                   id="searchQuery" 
+                                   name="search" 
+                                   placeholder="Введите название товара или слова из описания..."
+                                   class="search-input-win98"
+                                   value="{{ current_search|default:'' }}"
+                                   required>
+                            <button type="submit" class="btn-win98 search-btn">Найти</button>
+                        </div>
+                    </form>
+                    {% if current_search and not products %}
+                        <div class="search-not-found-msg" style="margin-top:18px;color:#800000;font-size:14px;font-weight:bold;background:#fff4f4;padding:10px 16px;border:2px solid #c0c0c0;border-radius:4px;">
+                            По вашему запросу ничего не найдено.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </div>
 </div>

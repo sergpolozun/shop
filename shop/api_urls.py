@@ -9,5 +9,5 @@ router.register(r'reviews', ReviewViewSet)
 router.register(r'tags', TagViewSet)
 
 urlpatterns = [
-    path('api/', include(router.urls)),
+    path('', include(router.urls)),
 ] 

@@ -102,6 +102,64 @@ function closeFilter() {
     document.getElementById('filterModal').style.display = 'none';
 }
 
+// Функции для модального окна поиска
+function openSearch() {
+    document.getElementById('searchModal').style.display = 'flex';
+    // Фокусируемся на поле поиска
+    setTimeout(() => {
+        document.getElementById('searchQuery').focus();
+    }, 100);
+}
+
+function closeSearch() {
+    document.getElementById('searchModal').style.display = 'none';
+}
+
+function performSearch(event) {
+    event.preventDefault();
+    const searchQuery = document.getElementById('searchQuery').value.trim();
+    const notFoundMsg = document.getElementById('searchNotFoundMsg');
+    if (notFoundMsg) notFoundMsg.style.display = 'none';
+    
+    if (searchQuery) {
+        // AJAX-запрос для проверки наличия товаров
+        const url = new URL(window.location.origin + window.location.pathname);
+        url.searchParams.set('search', searchQuery);
+        fetch(url.toString() + '&ajax=1')
+            .then(response => response.json())
+            .then(data => {
+                if (data.found) {
+                    // Есть товары — переходим на страницу
+                    window.location.href = url.toString();
+                } else {
+                    // Нет товаров — показываем сообщение
+                    let msg = document.getElementById('searchNotFoundMsg');
+                    if (!msg) {
+                        msg = document.createElement('div');
+                        msg.id = 'searchNotFoundMsg';
+                        msg.className = 'search-not-found-msg';
+                        msg.style.marginTop = '18px';
+                        msg.style.color = '#800000';
+                        msg.style.fontSize = '14px';
+                        msg.style.fontWeight = 'bold';
+                        msg.style.background = '#fff4f4';
+                        msg.style.padding = '10px 16px';
+                        msg.style.border = '2px solid #c0c0c0';
+                        msg.style.borderRadius = '4px';
+                        document.querySelector('.search-form-container').appendChild(msg);
+                    }
+                    msg.textContent = 'Товара с таким названием или описанием не найдено, попробуйте другой запрос.';
+                    msg.style.display = 'block';
+                }
+            });
+    }
+}
+
+// Экспорт функций поиска в глобальную область видимости
+window.openSearch = openSearch;
+window.closeSearch = closeSearch;
+window.performSearch = performSearch;
+
 // Обработчик формы фильтрации
 document.addEventListener('DOMContentLoaded', function() {
     var filterForm = document.getElementById('filterForm');
@@ -147,6 +205,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const productModal = document.getElementById('productModal');
         const categoriesModal = document.getElementById('categoriesModal');
         const filterModal = document.getElementById('filterModal');
+        const searchModal = document.getElementById('searchModal');
         const reviewsModal = document.getElementById('reviewsModal');
 
         if (event.target === productModal) {
@@ -157,6 +216,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         if (event.target === filterModal) {
             closeFilter();
+        }
+        if (event.target === searchModal) {
+            closeSearch();
         }
         if (event.target === reviewsModal) {
             closeReviewsModal();
@@ -218,5 +280,6 @@ function updateProductCardFavorite(productId, isFavorite) {
 function goToPage(pageNumber) {
     const url = new URL(window.location);
     url.searchParams.set('page', pageNumber);
+    // Сохраняем все параметры фильтрации и поиска
     window.location.href = url.toString();
 } 

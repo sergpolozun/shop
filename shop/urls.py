@@ -21,6 +21,7 @@ urlpatterns = [
     path('product/<int:product_id>/review/', views.add_review, name='add_review'),
     path('product/<int:product_id>/reviews/', views.get_reviews, name='get_reviews'),
     path('product/<int:product_id>/review-form/', views.get_review_form, name='get_review_form'),
+    path('category/<int:category_id>/', views.product_list_by_category, name='product_list_by_category'),
     # API URLs
     path('api/', include('shop.api_urls')),
 ]

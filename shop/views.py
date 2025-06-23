@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.db.models import Count, Q, Min, Max, Avg
+from django.db.models import Count, Q, Min, Max, Avg, Case, When, Value, IntegerField
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -29,9 +29,17 @@ def product_list(request):
     category_id = request.GET.get('category')
     min_price = request.GET.get('min_price')
     max_price = request.GET.get('max_price')
+    search_query = request.GET.get('search', '').strip()  # Поисковый запрос
+    is_ajax = request.GET.get('ajax') == '1'
 
     # Базовый queryset
     products = Product.objects.all()
+
+    # Поиск по названию или описанию
+    if search_query:
+        products = products.filter(
+            Q(name__icontains=search_query) | Q(descriptions__icontains=search_query)
+        )
 
     # Фильтрация по категории
     if category_id and category_id != 'all' and category_id != 'None':
@@ -73,6 +81,20 @@ def product_list(request):
         products = products.order_by(
             '-price' if order == 'desc' else 'price'
         )
+    elif sort_by == 'rating':
+        # Сортировка по рейтингу с учетом товаров без отзывов (ставятся в конец)
+        products = products.annotate(
+            avg_rating=Avg('reviews__rating')
+        ).annotate(
+            rating_order=Case(
+                When(avg_rating__isnull=True, then=Value(1)),
+                default=Value(0),
+                output_field=IntegerField(),
+            )
+        ).order_by(
+            'rating_order',
+            '-avg_rating' if order == 'desc' else 'avg_rating'
+        )
     elif sort_by == 'date':
         products = products.order_by(
             '-created_at' if order == 'desc' else 'created_at'
@@ -92,6 +114,9 @@ def product_list(request):
     except EmptyPage:
         page_obj = paginator.page(paginator.num_pages)
     
+    if is_ajax:
+        return JsonResponse({'found': page_obj.paginator.count > 0})
+
     categories = Category.objects.all()
     
     favorite_ids = []
@@ -107,6 +132,7 @@ def product_list(request):
         'current_order': order,
         'current_min_price': min_price,
         'current_max_price': max_price,
+        'current_search': search_query,
         'price_stats': price_stats,
         'favorite_ids': favorite_ids,
     }
@@ -488,9 +514,51 @@ def favorite_toggle(request, product_id):
 
 @login_required
 def favorite_list(request):
+    # Получаем параметры фильтрации
+    sort_by = request.GET.get('sort', 'date')  # По умолчанию по дате добавления
+    order = request.GET.get('order', 'desc')  # По умолчанию убывание
+    
+    # Базовый queryset избранных товаров
     favorites = Favorite.objects.filter(user=request.user).select_related('product')
+
+   
+    
+    # Сортировка
+    if sort_by == 'popularity':
+        favorites = favorites.order_by(
+            '-product__views_count' if order == 'desc' else 'product__views_count'
+        )
+    elif sort_by == 'price':
+        favorites = favorites.order_by(
+            '-product__price' if order == 'desc' else 'product__price'
+        )
+    elif sort_by == 'rating':
+        # Сортировка по рейтингу с учетом товаров без отзывов (ставятся в конец)
+        favorites = favorites.annotate(
+            avg_rating=Avg('product__reviews__rating')
+        ).annotate(
+            rating_order=Case(
+                When(avg_rating__isnull=True, then=Value(1)),
+                default=Value(0),
+                output_field=IntegerField(),
+            )
+        ).order_by(
+            'rating_order',
+            '-avg_rating' if order == 'desc' else 'avg_rating'
+        )
+    elif sort_by == 'date':
+        favorites = favorites.order_by(
+            '-product__created_at' if order == 'desc' else 'product__created_at'
+        )
+    elif sort_by == 'name':
+        favorites = favorites.order_by(
+            '-product__name' if order == 'desc' else 'product__name'
+        )
+    
     return render(request, 'shop/product/favorite.html', {
-        'favorites': favorites
+        'favorites': favorites,
+        'current_sort': sort_by,
+        'current_order': order,
     })
 
 
@@ -640,3 +708,110 @@ def get_review_form(request, product_id):
         'success': True,
         'html': form_html
     })
+
+
+def product_list_by_category(request, category_id):
+    # Получаем параметры фильтрации
+    sort_by = request.GET.get('sort', 'popularity')
+    order = request.GET.get('order', 'desc')
+    min_price = request.GET.get('min_price')
+    max_price = request.GET.get('max_price')
+    search_query = request.GET.get('search', '').strip()
+    is_ajax = request.GET.get('ajax') == '1'
+
+    # Проверяем, существует ли категория
+    category = get_object_or_404(Category, id=category_id)
+
+    # Базовый queryset только для этой категории
+    products = Product.objects.filter(category_id=category_id)
+
+    # Поиск по названию или описанию
+    if search_query:
+        products = products.filter(
+            Q(name__icontains=search_query) | Q(descriptions__icontains=search_query)
+        )
+
+    # Фильтрация по диапазону цен
+    if min_price:
+        try:
+            min_price = float(min_price)
+            products = products.filter(price__gte=min_price)
+        except (ValueError, TypeError):
+            pass
+    if max_price:
+        try:
+            max_price = float(max_price)
+            products = products.filter(price__lte=max_price)
+        except (ValueError, TypeError):
+            pass
+
+    # Получаем статистику цен для текущей выборки
+    price_stats = products.aggregate(
+        min_price=Min('price'),
+        max_price=Max('price'),
+        avg_price=Avg('price')
+    )
+
+    # Сортировка
+    if sort_by == 'popularity':
+        products = products.order_by(
+            '-views_count' if order == 'desc' else 'views_count'
+        )
+    elif sort_by == 'price':
+        products = products.order_by(
+            '-price' if order == 'desc' else 'price'
+        )
+    elif sort_by == 'rating':
+        products = products.annotate(
+            avg_rating=Avg('reviews__rating')
+        ).annotate(
+            rating_order=Case(
+                When(avg_rating__isnull=True, then=Value(1)),
+                default=Value(0),
+                output_field=IntegerField(),
+            )
+        ).order_by(
+            'rating_order',
+            '-avg_rating' if order == 'desc' else 'avg_rating'
+        )
+    elif sort_by == 'date':
+        products = products.order_by(
+            '-created_at' if order == 'desc' else 'created_at'
+        )
+    elif sort_by == 'name':
+        products = products.order_by(
+            '-name' if order == 'desc' else 'name'
+        )
+
+    # Пагинация
+    paginator = Paginator(products, 20)
+    page_number = request.GET.get('page')
+    try:
+        page_obj = paginator.page(page_number)
+    except PageNotAnInteger:
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        page_obj = paginator.page(paginator.num_pages)
+
+    if is_ajax:
+        return JsonResponse({'found': page_obj.paginator.count > 0})
+
+    categories = Category.objects.all()
+    favorite_ids = []
+    if request.user.is_authenticated:
+        favorite_ids = list(Favorite.objects.filter(user=request.user).values_list('product_id', flat=True))
+
+    context = {
+        'products': page_obj,
+        'page_obj': page_obj,
+        'categories': categories,
+        'current_category': category_id,
+        'current_sort': sort_by,
+        'current_order': order,
+        'current_min_price': min_price,
+        'current_max_price': max_price,
+        'current_search': search_query,
+        'price_stats': price_stats,
+        'favorite_ids': favorite_ids,
+    }
+    return render(request, 'shop/product/list.html', context)

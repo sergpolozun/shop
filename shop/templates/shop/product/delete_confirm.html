@@ -1,9 +1,5 @@
-{% extends "main/base.html" %}
-{% load static %}
-
-{% block title %}Удалить продукт | POLOS{% endblock %}
-
-{% block content %}
+{% extends "main/base.html" %} {% load static %} {% block title %}Удалить
+продукт | POLOS{% endblock %} {% block content %}
 <div class="delete-container">
   <div class="win95-header">
     <span>Подтверждение удаления</span>
@@ -11,7 +7,7 @@
 
   <div class="delete-content">
     <p>Вы уверены, что хотите удалить продукт "{{ product.name }}"?</p>
-    
+
     <div class="product-info">
       <h3>{{ product.name }}</h3>
       <p>Категория: {{ product.category.name }}</p>
@@ -22,42 +18,46 @@
       {% csrf_token %}
       <div class="form-actions">
         <button type="submit" class="btn-danger">Удалить</button>
-        <a href="{% url 'shop:product_detail' product.slug %}" class="btn-secondary">Отмена</a>
+        <a
+          href="{% url 'shop:product_detail' product.slug %}"
+          class="btn-secondary"
+          >Отмена</a
+        >
       </div>
     </form>
   </div>
 </div>
 
 <style>
-.delete-container {
-  max-width: 500px;
-  margin: 20px auto;
-  padding: 20px;
-  background: #c0c0c0;
-  border: 2px outset #ffffff;
-}
+  .delete-container {
+    max-width: 500px;
+    margin: 20px auto;
+    padding: 20px;
+    background: #c0c0c0;
+    border: 2px outset #ffffff;
+  }
 
-.delete-content {
-  text-align: center;
-}
+  .delete-content {
+    text-align: center;
+  }
 
-.product-info {
-  margin: 20px 0;
-  padding: 15px;
-  background: #ffffff;
-  border: 2px inset #ffffff;
-}
+  .product-info {
+    margin: 20px 0;
+    padding: 15px;
+    background: #ffffff;
+    border: 2px inset #ffffff;
+  }
 
-.btn-danger {
-  background: #ff0000;
-  color: #ffffff;
-  border: 2px outset #ffffff;
-  padding: 8px 16px;
-  cursor: pointer;
-}
+  .btn-danger {
+    background: #ff0000;
+    color: #ffffff;
+    border: 2px outset #ffffff;
+    padding: 8px 16px;
+    cursor: pointer;
+  }
 
-.btn-danger:hover {
-  border: 2px inset #ffffff;
-}
+  .btn-danger:hover {
+    border: 2px inset #ffffff;
+  }
 </style>
-{% endblock %} 
+{% endblock %}

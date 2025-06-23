@@ -7,6 +7,8 @@ from import_export import resources, fields
 from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
 from .models import Product, Category, Tag, ProductTag, Review, User
 from django.db import models
+from simple_history.admin import SimpleHistoryAdmin
+from import_export.formats import base_formats
 
 
 class TagResource(resources.ModelResource):
@@ -96,6 +98,7 @@ class ProductTagInline(admin.TabularInline):
 @admin.register(Tag)
 class TagAdmin(ImportExportModelAdmin):
     resource_class = TagResource
+    formats = [base_formats.CSV, base_formats.TSV, base_formats.JSON, base_formats.HTML, base_formats.XLSX]
     list_display = ['name', 'slug', 'products_count']
     prepopulated_fields = {'slug': ('name',)}
     search_fields = ['name']
@@ -109,6 +112,7 @@ class TagAdmin(ImportExportModelAdmin):
 @admin.register(Category)
 class CategoryAdmin(ImportExportModelAdmin):
     resource_class = CategoryResource
+    formats = [base_formats.CSV, base_formats.TSV, base_formats.JSON, base_formats.HTML, base_formats.XLSX]
     list_display = ['name', 'slug', 'products_count']
     prepopulated_fields = {'slug': ('name',)}
     search_fields = ['name']
@@ -133,6 +137,7 @@ class CategoryAdmin(ImportExportModelAdmin):
 @admin.register(Product)
 class ProductAdmin(ImportExportModelAdmin):
     resource_class = ProductResource
+    formats = [base_formats.CSV, base_formats.TSV, base_formats.JSON, base_formats.HTML, base_formats.XLSX]
     list_display = [
         'name', 'slug', 'category', 'price', 'discount_price',
         'available', 'status', 'views_count', 'reviews_count', 'created_at'
@@ -205,6 +210,7 @@ class ProductAdmin(ImportExportModelAdmin):
 @admin.register(Review)
 class ReviewAdmin(ImportExportModelAdmin):
     resource_class = ReviewResource
+    formats = [base_formats.CSV, base_formats.TSV, base_formats.JSON, base_formats.HTML, base_formats.XLSX]
     list_display = ['user', 'product', 'rating', 'created_at']
     list_filter = ['rating', 'created_at', 'product']
     search_fields = ['user__username', 'text', 'product__name']
@@ -221,3 +227,7 @@ class ReviewAdmin(ImportExportModelAdmin):
         }),
     )
     readonly_fields = ['created_at']
+
+admin.site.register(Product.history.model, SimpleHistoryAdmin)
+admin.site.register(Category.history.model, SimpleHistoryAdmin)
+admin.site.register(Review.history.model, SimpleHistoryAdmin)
