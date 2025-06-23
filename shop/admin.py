@@ -5,7 +5,8 @@ from reportlab.lib.pagesizes import letter
 from import_export.admin import ImportExportModelAdmin
 from import_export import resources, fields
 from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
-from .models import Product, Category, Tag, ProductTag, Review
+from .models import Product, Category, Tag, ProductTag, Review, User
+from django.db import models
 
 
 class TagResource(resources.ModelResource):
@@ -75,15 +76,16 @@ class CategoryResource(resources.ModelResource):
 
 class ReviewResource(resources.ModelResource):
     product = fields.Field(column_name='product', attribute='product', widget=ForeignKeyWidget(Product, 'name'))
+    user = fields.Field(column_name='user', attribute='user', widget=ForeignKeyWidget(User, 'username'))
     
     class Meta:
         model = Review
-        fields = ('id', 'product', 'author', 'rating', 'text', 'created_at')
+        fields = ('id', 'product', 'user', 'rating', 'text', 'created_at')
         export_order = fields
     
     def get_export_queryset(self):
         """Кастомизация queryset для экспорта"""
-        return self.model.objects.select_related('product').all()
+        return self.model.objects.select_related('product', 'user').all()
 
 
 class ProductTagInline(admin.TabularInline):
@@ -115,15 +117,17 @@ class CategoryAdmin(ImportExportModelAdmin):
         ('Основная информация', {
             'fields': ('name', 'slug')
         }),
-        ('Статистика', {
-            'fields': ('products_count',),
-            'classes': ('collapse',)
-        }),
     )
     
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        queryset = queryset.annotate(products_count=models.Count('products'))
+        return queryset
+
     def products_count(self, obj):
-        return obj.products.count()
+        return obj.products_count
     products_count.short_description = 'Количество продуктов'
+    products_count.admin_order_field = 'products_count'
 
 
 @admin.register(Product)
@@ -157,6 +161,7 @@ class ProductAdmin(ImportExportModelAdmin):
         }),
     )
     
+    readonly_fields = ['created_at', 'updated']
     actions = ['generate_pdf_report', 'mark_as_available', 'mark_as_unavailable']
     
     def discount_price(self, obj):
@@ -200,18 +205,19 @@ class ProductAdmin(ImportExportModelAdmin):
 @admin.register(Review)
 class ReviewAdmin(ImportExportModelAdmin):
     resource_class = ReviewResource
-    list_display = ['author', 'product', 'rating', 'created_at']
+    list_display = ['user', 'product', 'rating', 'created_at']
     list_filter = ['rating', 'created_at', 'product']
-    search_fields = ['author', 'text', 'product__name']
+    search_fields = ['user__username', 'text', 'product__name']
     ordering = ['-created_at']
-    list_select_related = ['product']
+    list_select_related = ['product', 'user']
     
     fieldsets = (
         ('Основная информация', {
-            'fields': ('product', 'author', 'rating', 'text')
+            'fields': ('product', 'user', 'rating', 'text')
         }),
         ('Метаданные', {
             'fields': ('created_at',),
             'classes': ('collapse',)
         }),
     )
+    readonly_fields = ['created_at']

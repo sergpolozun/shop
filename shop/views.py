@@ -499,12 +499,18 @@ def add_review(request, product_id):
     if request.method == 'POST':
         product = get_object_or_404(Product, id=product_id)
         
-        author = request.POST.get('author', '').strip()
+        # Проверяем, оставлял ли пользователь уже отзыв
+        if Review.objects.filter(product=product, user=request.user).exists():
+            return JsonResponse({
+                'success': False, 
+                'message': 'Вы уже оставляли отзыв на этот товар.'
+            })
+            
         rating = request.POST.get('rating')
         text = request.POST.get('text', '').strip()
         
         # Валидация
-        if not author or not rating or not text:
+        if not rating or not text:
             return JsonResponse({
                 'success': False, 
                 'message': 'Все поля обязательны для заполнения'
@@ -526,7 +532,7 @@ def add_review(request, product_id):
         # Создаем отзыв
         review = Review.objects.create(
             product=product,
-            author=author,
+            user=request.user, # Используем текущего пользователя
             rating=rating,
             text=text
         )
@@ -535,7 +541,7 @@ def add_review(request, product_id):
             'success': True,
             'message': 'Отзыв успешно добавлен!',
             'review': {
-                'author': review.author,
+                'author': review.user.username, # Возвращаем username
                 'rating': review.rating,
                 'text': review.text,
                 'created_at': review.created_at.strftime('%d.%m.%Y')
@@ -565,7 +571,7 @@ def get_reviews(request, product_id):
             reviews_html += f"""
             <div class="review-item">
                 <div class="review-header">
-                    <span class="review-author">{review.author}</span>
+                    <span class="review-author">{review.user.username}</span>
                     <span class="review-rating">{stars}</span>
                     <span class="review-date">{review.created_at.strftime('%d.%m.%Y')}</span>
                 </div>
@@ -595,15 +601,18 @@ def get_review_form(request, product_id):
     
     product = get_object_or_404(Product, id=product_id)
     
-    # Получаем имя пользователя из профиля или используем username
-    user_name = request.user.first_name or request.user.username
-    
+    # Проверяем, не оставлял ли пользователь уже отзыв
+    if Review.objects.filter(product=product, user=request.user).exists():
+        return JsonResponse({
+            'success': False,
+            'message': 'Вы уже оставили отзыв на этот товар.'
+        })
+        
     form_html = f"""
-    <form id="reviewForm_{product.id}" class="review-form">
+    <form id="reviewForm_{product.id}" class="review-form" onsubmit="submitReview({product.id}); return false;">
         <input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">
         <div class="form-group">
-            <label>Ваше имя:</label>
-            <input type="text" name="author" class="input-win98" value="{user_name}" required>
+            <p>Вы оставляете отзыв как: <strong>{request.user.username}</strong></p>
         </div>
         <div class="form-group">
             <label>Рейтинг:</label>

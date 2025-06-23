@@ -528,10 +528,18 @@ function closeReviewFormModal() {
   if (reviewFormModal) {
     reviewFormModal.classList.remove('show');
     reviewFormModal.classList.add('hide');
+    // Через 300мс скрываем окно, чтобы анимация успела отработать
     setTimeout(() => {
-      reviewFormModal.style.display = 'none';
-      reviewFormModal.classList.remove('hide');
-    }, 400);
+        reviewFormModal.style.display = 'none';
+        reviewFormModal.classList.remove('hide');
+    }, 300);
+
+    // Возвращаем модальное окно товара в центр
+    const productModal = document.getElementById('productModal');
+    if (productModal) {
+        productModal.classList.remove('product-modal-shifted');
+        productModal.classList.add('product-modal-normal');
+    }
   }
 }
 
