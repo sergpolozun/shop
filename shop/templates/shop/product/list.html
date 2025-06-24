@@ -20,6 +20,10 @@
       {% else %}
         <button class="btn-win98" onclick="openSearch()">Поиск</button>
       {% endif %}
+      {% if user.is_staff %}
+        <button class="btn-win98" onclick="window.location.href='/admin/'">Админка</button>
+        <button class="btn-win98" onclick="window.location.href='{% url 'shop:product_create' %}'">Добавить</button>
+      {% endif %}
     </div>
     
     <div class="shop-nav-center">

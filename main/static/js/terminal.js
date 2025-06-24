@@ -12,7 +12,10 @@ class Terminal {
             cat: this.catFile.bind(this),
             whoami: this.whoami.bind(this),
             pwd: this.pwd.bind(this),
-            exit: this.exit.bind(this)
+            exit: this.exit.bind(this),
+            sales: this.showSales.bind(this),
+            news: this.showNews.bind(this),
+            popular: this.showPopular.bind(this)
         };
         
         this.files = {
@@ -29,59 +32,66 @@ class Terminal {
     }
 
     init() {
+        console.log('POLOS_USERNAME:', window.POLOS_USERNAME);
         this.terminal = document.getElementById('terminalOutput');
         this.input = document.getElementById('terminalInput');
         
-        // Очищаем терминал при повторном входе
-        if (this.isInitialized) {
-            this.terminal.innerHTML = '';
-        }
+        // Очищаем терминал при каждом открытии
+        this.terminal.innerHTML = '';
+        this.input.removeEventListener('keydown', this.handleKeyDownBinded || (()=>{}));
+        this.handleKeyDownBinded = this.handleKeyDown.bind(this);
+        this.input.addEventListener('keydown', this.handleKeyDownBinded);
         
-        this.input.addEventListener('keydown', this.handleKeyDown.bind(this));
-        
-        // Запускаем анимацию приветствия только при первом входе
-        if (!this.isInitialized) {
-            this.typeWelcome();
-            this.isInitialized = true;
+        // Устанавливаем username, если есть
+        if (window.POLOS_USERNAME) {
+            this.currentUser = window.POLOS_USERNAME + '@polos';
+            this.currentDir = '/home/' + window.POLOS_USERNAME;
         } else {
-            // При повторном входе просто показываем промпт
-            this.addLine(`${this.currentUser}:${this.currentDir}$ `);
-            this.input.focus();
+            this.currentUser = 'user@polos';
+            this.currentDir = '/home/user';
         }
+        
+        // Показываем приветствие и prompt только один раз
+        this.typeWelcome();
+        this.isInitialized = true;
     }
 
     async typeWelcome() {
-        const welcomeText = `Welcome to POLOS Terminal v1.0.0
-Matrix-style interface initialized...
-Loading system components...
-System ready.
-
-Type 'help' for available commands.
-
-${this.currentUser}:${this.currentDir}$ `;
-        
-        await this.typeText(welcomeText);
+        // Очищаем терминал перед анимацией
+        this.terminal.innerHTML = '';
+        // Формируем массив строк приветствия
+        const welcomeLines = [];
+        welcomeLines.push('Matrix-style interface initialized...');
+        welcomeLines.push('Loading system components...');
+        welcomeLines.push('System ready.');
+        if (window.POLOS_USERNAME) {
+            welcomeLines.push(`hello, ${window.POLOS_USERNAME}`);
+        }
+        welcomeLines.push('');
+        welcomeLines.push("Type 'help' for available commands.");
+        welcomeLines.push('');
+        // Печатаем каждую строку с эффектом печати
+        for (const line of welcomeLines) {
+            await this.typeLine(line, 80); // скорость печати 80мс на символ
+        }
+        this.addLine(`${this.currentUser}:${this.currentDir}$ `);
         this.input.focus();
     }
 
-    async typeText(text, speed = 50) {
-        const lines = text.split('\n');
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-            if (line.includes('$')) {
-                // Это строка с промптом - печатаем сразу
-                this.addLine(line);
-            } else {
-                // Обычная строка - печатаем посимвольно
-                let currentLine = '';
-                for (let j = 0; j < line.length; j++) {
-                    currentLine += line[j];
-                    this.updateLastLine(currentLine);
-                    await this.sleep(speed);
-                }
-                this.addLine(line);
-            }
+    async typeLine(line, speed = 50) {
+        if (line.trim() === '') {
+            this.addLine('');
+            return;
         }
+        // Добавляем пустой div для анимации этой строки
+        this.addLine('');
+        let currentLine = '';
+        for (let j = 0; j < line.length; j++) {
+            currentLine += line[j];
+            this.updateLastLine(currentLine);
+            await this.sleep(speed);
+        }
+        // Не добавляем строку повторно!
     }
 
     updateLastLine(text) {
@@ -156,23 +166,26 @@ ${this.currentUser}:${this.currentDir}$ `;
     }
 
     showHelp() {
-        const helpText = `Available commands:
-  help     - Show this help message
-  clear    - Clear terminal screen
-  about    - Show project information
-  date     - Show current date
-  time     - Show current time
-  echo     - Print arguments
-  matrix   - Matrix-style animation
-  ls       - List files
-  cat      - Display file contents
-  whoami   - Show current user
-  pwd      - Show current directory
-  exit     - Close terminal
-
-Type 'help <command>' for more information about a specific command.`;
-        
-        this.addLine(helpText);
+        const helpLines = [
+            'help     - Show this help message',
+            'clear    - Clear terminal screen',
+            'about    - Show project information',
+            'date     - Show current date',
+            'time     - Show current time',
+            'echo     - Print arguments',
+            'matrix   - Matrix-style animation',
+            'ls       - List files',
+            'cat      - Display file contents',
+            'whoami   - Show current user',
+            'pwd      - Show current directory',
+            'sales    - Show 3 sale products',
+            'news     - Show 3 new products',
+            'popular  - Show 3 most popular products',
+            'exit     - Close terminal',
+            '',
+            "Type 'help <command>' for more information about a specific command."
+        ];
+        helpLines.forEach(line => this.addLine(line));
     }
 
     clear() {
@@ -252,6 +265,51 @@ POLOS - это проект, объединяющий ретро-стиль Wind
 
     exit() {
         closeModal('terminalModal');
+    }
+
+    async showSales() {
+        this.addLine('Топ-3 товара со статусом "распродажа":');
+        try {
+            const resp = await fetch('/shop/api/terminal/sales/');
+            const data = await resp.json();
+            if (data.products.length === 0) {
+                this.addLine('Нет товаров со статусом "распродажа".');
+            } else {
+                data.products.forEach(p => this.addLine(`${p.name} — ${p.price}₽`));
+            }
+        } catch (e) {
+            this.addLine('Ошибка получения данных.');
+        }
+    }
+
+    async showNews() {
+        this.addLine('Топ-3 новых товара:');
+        try {
+            const resp = await fetch('/shop/api/terminal/news/');
+            const data = await resp.json();
+            if (data.products.length === 0) {
+                this.addLine('Нет новых товаров.');
+            } else {
+                data.products.forEach(p => this.addLine(`${p.name} — ${p.price}₽`));
+            }
+        } catch (e) {
+            this.addLine('Ошибка получения данных.');
+        }
+    }
+
+    async showPopular() {
+        this.addLine('Топ-3 популярных товара:');
+        try {
+            const resp = await fetch('/shop/api/terminal/popular/');
+            const data = await resp.json();
+            if (data.products.length === 0) {
+                this.addLine('Нет популярных товаров.');
+            } else {
+                data.products.forEach(p => this.addLine(`${p.name} — ${p.price}₽`));
+            }
+        } catch (e) {
+            this.addLine('Ошибка получения данных.');
+        }
     }
 }
 

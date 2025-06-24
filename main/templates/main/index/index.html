@@ -120,5 +120,10 @@
 <script src="{% static 'js/desktop.js' %}"></script>
 <script src="{% static 'js/d-n-d.js' %}"></script>
 <script src="{% static 'js/change_wallpaper.js' %}"></script>
+{% if user.is_authenticated %}
+<script>window.POLOS_USERNAME = "{{ user.username|escapejs }}";</script>
+{% else %}
+<script>window.POLOS_USERNAME = null;</script>
+{% endif %}
 <script src="{% static 'js/terminal.js' %}"></script>
 {% endblock %}

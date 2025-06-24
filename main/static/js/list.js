@@ -282,4 +282,113 @@ function goToPage(pageNumber) {
     url.searchParams.set('page', pageNumber);
     // Сохраняем все параметры фильтрации и поиска
     window.location.href = url.toString();
+}
+
+// Модальное окно редактирования товара (для администратора)
+function openEditProductModal(productId) {
+    fetch(`/shop/product/${productId}/edit/`, { credentials: 'include' })
+        .then(response => response.text())
+        .then(html => {
+            let editModal = document.getElementById('editProductModal');
+            if (!editModal) {
+                editModal = document.createElement('div');
+                editModal.id = 'editProductModal';
+                editModal.className = 'modal-win98';
+                document.body.appendChild(editModal);
+            }
+            editModal.innerHTML = `
+                <div class="modal-content-win98" style="width:500px;height:420px;position:absolute;top:50%;left:50%;margin:0;transform:translate(10%, -50%);">
+                    <div class="modal-header-win98">
+                        <h3>Редактировать товар</h3>
+                        <button class="close-btn-win98" onclick="closeEditProductModal()">×</button>
+                    </div>
+                    <div class="modal-body-win98" id="editProductModalBody">${html}</div>
+                </div>
+            `;
+            editModal.style.display = 'block';
+
+            // Сдвигаем окно карточки товара налево
+            const productModal = document.getElementById('productModal');
+            if (productModal) {
+                const productContent = productModal.querySelector('.modal-content-win98');
+                if (productContent) {
+                    productContent.style.transform = 'translate(-110%, -50%)';
+                }
+            }
+        })
+        .catch(error => {
+            alert('Ошибка загрузки формы редактирования');
+        });
+}
+
+function closeEditProductModal() {
+    const editModal = document.getElementById('editProductModal');
+    if (editModal) {
+        editModal.style.display = 'none';
+    }
+    // Возвращаем окно карточки товара в центр
+    const productModal = document.getElementById('productModal');
+    if (productModal) {
+        const productContent = productModal.querySelector('.modal-content-win98');
+        if (productContent) {
+            productContent.style.transform = 'translate(-50%, -50%)';
+        }
+    }
+}
+
+// Для отправки формы редактирования товара (через AJAX)
+function submitEditProductForm(event, productId) {
+    event.preventDefault();
+    const form = event.target;
+    const formData = new FormData(form);
+    fetch(`/shop/product/${productId}/edit/`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Товар успешно обновлён!');
+            closeEditProductModal();
+            location.reload();
+        } else {
+            document.getElementById('editProductModalBody').innerHTML = data.html;
+        }
+    })
+    .catch(() => alert('Ошибка сохранения товара'));
+}
+
+// Для удаления товара (через AJAX)
+function deleteProduct(productId) {
+    if (!confirm('Вы уверены, что хотите удалить этот товар?')) return;
+    fetch(`/shop/product/${productId}/delete/`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'X-CSRFToken': getCSRFToken(), 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Товар удалён!');
+            closeEditProductModal();
+            location.reload();
+        } else {
+            alert('Ошибка удаления товара');
+        }
+    })
+    .catch(() => alert('Ошибка удаления товара'));
+}
+
+function getCSRFToken() {
+    const name = 'csrftoken';
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.startsWith(name + '=')) {
+            return decodeURIComponent(cookie.substring(name.length + 1));
+        }
+    }
+    return '';
 } 

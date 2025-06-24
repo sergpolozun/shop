@@ -5,7 +5,7 @@ POLOS{% endblock %} {% block content %}
     <span>{{ title }}</span>
   </div>
 
-  <form method="post" enctype="multipart/form-data" class="product-form">
+  <form method="post" enctype="multipart/form-data" class="product-form" onsubmit="submitEditProductForm(event, {{ product.id }})">
     {% csrf_token %} {% for field in form %}
     <div class="form-group">
       {{ field.label_tag }} {{ field }} {% if field.help_text %}
@@ -21,8 +21,10 @@ POLOS{% endblock %} {% block content %}
     {% endfor %}
 
     <div class="form-actions">
-      <button type="submit" class="btn-primary">Сохранить</button>
-      <a href="{% url 'shop:product_list' %}" class="btn-secondary">Отмена</a>
+      <button type="submit" class="btn-win98">Сохранить</button>
+      {% if user.is_staff and product %}
+        <button type="button" class="btn-win98" style="margin-left:12px;background:#fff0f0;color:#800;" onclick="deleteProduct({{ product.id }})">Удалить товар</button>
+      {% endif %}
     </div>
   </form>
 </div>
@@ -70,22 +72,6 @@ POLOS{% endblock %} {% block content %}
   .form-actions {
     margin-top: 20px;
     text-align: center;
-  }
-
-  .btn-primary,
-  .btn-secondary {
-    padding: 8px 16px;
-    margin: 0 5px;
-    border: 2px outset #ffffff;
-    background: #c0c0c0;
-    cursor: pointer;
-    text-decoration: none;
-    color: #000;
-  }
-
-  .btn-primary:hover,
-  .btn-secondary:hover {
-    border: 2px inset #ffffff;
   }
 </style>
 {% endblock %}

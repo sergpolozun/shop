@@ -55,8 +55,12 @@ class ProductForm(forms.ModelForm):
 
     def save(self, commit=True):
         product = super().save(commit=False)
+        # Дополнительная обработка перед сохранением
+        if product.price and product.price < 0:
+            raise forms.ValidationError('Цена не может быть отрицательной')
         if commit:
             product.save()
+            self.save_m2m()
         return product
 
 

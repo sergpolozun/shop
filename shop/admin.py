@@ -9,6 +9,9 @@ from .models import Product, Category, Tag, ProductTag, Review, User
 from django.db import models
 from simple_history.admin import SimpleHistoryAdmin
 from import_export.formats import base_formats
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+import os
 
 
 class TagResource(resources.ModelResource):
@@ -142,6 +145,7 @@ class ProductAdmin(ImportExportModelAdmin):
         'name', 'slug', 'category', 'price', 'discount_price',
         'available', 'status', 'views_count', 'reviews_count', 'created_at'
     ]
+    list_display_links = ['name', 'slug']
     list_filter = ['available', 'category', 'status', 'created_at', 'updated', 'views_count']
     list_editable = ['price', 'available', 'status']
     search_fields = ['name', 'descriptions']
@@ -149,7 +153,10 @@ class ProductAdmin(ImportExportModelAdmin):
     list_select_related = ['category']
     inlines = [ProductTagInline]
     ordering = ['-views_count', 'name']
-    
+    readonly_fields = ['created_at', 'updated']
+    actions = ['generate_pdf_report', 'mark_as_available', 'mark_as_unavailable']
+    raw_id_fields = ['category']
+    date_hierarchy = 'created_at'
     fieldsets = (
         ('Основная информация', {
             'fields': ('name', 'slug', 'category', 'descriptions', 'image')
@@ -165,33 +172,38 @@ class ProductAdmin(ImportExportModelAdmin):
             'classes': ('collapse',)
         }),
     )
-    
-    readonly_fields = ['created_at', 'updated']
-    actions = ['generate_pdf_report', 'mark_as_available', 'mark_as_unavailable']
-    
+
+    @admin.display(description='Цена со скидкой')
     def discount_price(self, obj):
         return obj.discount_price()
-    discount_price.short_description = 'Цена со скидкой'
-    
+
+    @admin.display(description='Отзывов')
     def reviews_count(self, obj):
         return obj.reviews.count()
-    reviews_count.short_description = 'Отзывов'
     
     def generate_pdf_report(self, request, queryset):
         response = HttpResponse(content_type='application/pdf')
         response['Content-Disposition'] = 'attachment; filename="products_report.pdf"'
-        
+
+        # Путь к шрифту (Arial или DejaVuSans)
+        font_path = 'C:/Windows/Fonts/arial.ttf'
+        if not os.path.exists(font_path):
+            font_path = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
+        pdfmetrics.registerFont(TTFont('CustomFont', font_path))
+
         p = canvas.Canvas(response, pagesize=letter)
+        p.setFont('CustomFont', 12)
         p.drawString(100, 750, "Отчет по продуктам")
-        
+
         y = 700
         for product in queryset:
             p.drawString(100, y, f"{product.name} - {product.price}₽")
             y -= 20
             if y < 50:
                 p.showPage()
+                p.setFont('CustomFont', 12)
                 y = 750
-        
+
         p.showPage()
         p.save()
         return response
@@ -216,10 +228,10 @@ class ReviewAdmin(ImportExportModelAdmin):
     search_fields = ['user__username', 'text', 'product__name']
     ordering = ['-created_at']
     list_select_related = ['product', 'user']
-    
+    filter_horizontal = ['helpful_votes']
     fieldsets = (
         ('Основная информация', {
-            'fields': ('product', 'user', 'rating', 'text')
+            'fields': ('product', 'user', 'rating', 'text', 'helpful_votes')
         }),
         ('Метаданные', {
             'fields': ('created_at',),

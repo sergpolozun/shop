@@ -18,6 +18,9 @@
                 <p class="price">{{product.price}}</p>
             {% endif %}
             <a href="#" class="card-btn">Добавить в корзину</a>
+            {% if user.is_staff %}
+                <button class="btn-win98" onclick="openEditProductModal({{ product.id }})" style="margin-left: 12px;">Редактировать</button>
+            {% endif %}
         </div>
         </div>
     </div>

@@ -1040,13 +1040,13 @@ body {
 }
 
 .modal-body-win98 {
-    padding: 16px;
-    background: white;
-    border-top: 2px inset #fff;
-    border-left: 2px inset #fff;
-    color: black;
-    overflow-y: auto; /* Скролл только для тела модалки */
-    flex-grow: 1;
+    padding: 0;
+    height: calc(100% - 40px);
+    overflow: hidden;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    background: #000 !important;
 }
 
 /* Стили для элементов категорий */
@@ -1575,13 +1575,12 @@ link[rel="icon"] {
     padding: 10px;
     border: 2px solid #00ff00;
     border-radius: 5px;
-    height: 100%;
-    min-height: 300px;
-    max-height: 400px;
     display: flex;
     flex-direction: column;
     position: relative;
     box-sizing: border-box;
+    flex: 1 1 auto;
+    min-height: 0;
 }
 
 .terminal-container::before {
@@ -1670,18 +1669,17 @@ link[rel="icon"] {
 #terminalModal .modal-content-win98 {
     width: 90%;
     max-width: 800px;
-    height: 500px;
+    height: 100%;
+    min-height: 0;
     max-height: 80vh;
-    min-height: 350px;
     display: flex;
     flex-direction: column;
 }
 
 #terminalModal .modal-body-win98 {
     padding: 0;
-    height: calc(100% - 40px);
-    overflow: hidden;
-    flex: 1 1 auto;
+    background: #000;
+    height: 100%;
     display: flex;
     flex-direction: column;
 }

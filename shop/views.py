@@ -11,6 +11,7 @@ from django.utils import timezone
 import json
 from django.urls import reverse
 from django.middleware.csrf import get_token
+from django.views.decorators.csrf import csrf_exempt
 
 
 def get_client_ip(request):
@@ -164,6 +165,7 @@ def product_detail(request, pk):
     context = {
         'product': product,
         'related_products': related_products,
+        'user': request.user,
     }
     return render(request, 'shop/product/detail.html', context)
 
@@ -260,6 +262,11 @@ def product_detail_json(request, pk):
     <button class="btn-win98" onclick="openReviewsModal({product.id})">{reviews_text}</button>
     """
     
+    # Кнопка редактирования для администратора
+    edit_html = ""
+    if request.user.is_staff:
+        edit_html = f'''\n    <button class="btn-win98" style="margin-left:12px;" onclick="openEditProductModal({product.id})">Редактировать</button>\n    '''
+    
     html_content = f"""
     <div class="product-detail-win98">
         <div class="product-image-container">
@@ -276,6 +283,7 @@ def product_detail_json(request, pk):
                 {cart_html}
                 {favorite_html}
                 {reviews_html}
+                {edit_html}
             </div>
         </div>
     </div>
@@ -296,7 +304,7 @@ def product_create(request):
             product.save()
             form.save_m2m()  # Сохраняем many-to-many связи
             messages.success(request, 'Продукт успешно создан!')
-            return HttpResponseRedirect(product.get_absolute_url())
+            return HttpResponseRedirect(reverse('shop:product_list'))
     else:
         form = ProductForm()
     
@@ -307,35 +315,38 @@ def product_create(request):
 
 
 @login_required
-def product_edit(request, slug):
-    product = get_object_or_404(Product, slug=slug)
+@csrf_exempt
+def product_edit_by_id(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    if not request.user.is_staff:
+        return JsonResponse({'success': False, 'error': 'Нет прав'}, status=403)
     if request.method == 'POST':
         form = ProductForm(request.POST, request.FILES, instance=product)
         if form.is_valid():
-            product = form.save()
-            messages.success(request, 'Продукт успешно обновлен!')
-            return HttpResponseRedirect(product.get_absolute_url())
+            form.save()
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'success': True})
+            else:
+                return redirect(product.get_absolute_url())
+        else:
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                html = render(request, 'shop/product/form.html', {'form': form, 'product': product, 'title': 'Редактировать продукт'}).content.decode()
+                return JsonResponse({'success': False, 'html': html})
     else:
-        form = ProductForm(instance=product)
-    
-    return render(request, 'shop/product/form.html', {
-        'form': form,
-        'product': product,
-        'title': 'Редактировать продукт'
-    })
+        html = render(request, 'shop/product/form.html', {'form': ProductForm(instance=product), 'product': product, 'title': 'Редактировать продукт'}).content.decode()
+        return HttpResponse(html)
 
 
 @login_required
-def product_delete(request, slug):
-    product = get_object_or_404(Product, slug=slug)
+@csrf_exempt
+def product_delete_by_id(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    if not request.user.is_staff:
+        return JsonResponse({'success': False, 'error': 'Нет прав'}, status=403)
     if request.method == 'POST':
         product.delete()
-        messages.success(request, 'Продукт успешно удален!')
-        return redirect('shop:product_list')
-    
-    return render(request, 'shop/product/delete_confirm.html', {
-        'product': product
-    })
+        return JsonResponse({'success': True})
+    return JsonResponse({'success': False, 'error': 'Только POST'})
 
 
 def product_stats(request):
@@ -815,3 +826,25 @@ def product_list_by_category(request, category_id):
         'favorite_ids': favorite_ids,
     }
     return render(request, 'shop/product/list.html', context)
+
+
+def api_terminal_sales(request):
+    products = Product.objects.filter(status='sale').order_by('-created_at')[:3]
+    data = [
+        {'name': p.name, 'price': str(p.price)} for p in products
+    ]
+    return JsonResponse({'products': data})
+
+def api_terminal_news(request):
+    products = Product.objects.filter(status='new').order_by('-created_at')[:3]
+    data = [
+        {'name': p.name, 'price': str(p.price)} for p in products
+    ]
+    return JsonResponse({'products': data})
+
+def api_terminal_popular(request):
+    products = Product.objects.order_by('-views_count')[:3]
+    data = [
+        {'name': p.name, 'price': str(p.price)} for p in products
+    ]
+    return JsonResponse({'products': data})
